@@ -1,11 +1,12 @@
 import { useState } from 'react'
 
-import UpVideo from "./components/UploadForm"
+import {UpVideo, DetailStep} from "./components/UploadForm"
 
 function App() {
     return (
         <div>
-            <UpVideo></UpVideo>
+            {/* <UpVideo></UpVideo> */}
+            <DetailStep></DetailStep>
         </div>)
 }
 
