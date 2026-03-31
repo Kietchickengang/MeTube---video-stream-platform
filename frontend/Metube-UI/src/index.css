@@ -1,0 +1,54 @@
+/* 1. Kích hoạt bộ công cụ của Tailwind CSS */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 2. Thiết lập cơ bản cho toàn bộ trang web */
+@layer base {
+  :root {
+  font-family: "Roboto", "Inter", system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+  body {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #ffffff; /* Màu nền trắng chuẩn YouTube */
+    color: #0f0f0f; /* Màu chữ đen xám nhẹ */
+  }
+}
+
+/* 3. Tùy chỉnh thanh cuộn (Scrollbar) cho Sidebar và Feed */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0f0f0f;
+}
+::-webkit-scrollbar-thumb {
+  background: #3f3f3f;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #717171;
+}
+
+/* Class bổ sung để ẩn thanh cuộn nếu cần (dùng cho Sidebar) */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* 4. Đảm bảo các hình ảnh (Thumbnail) không bị biến dạng */
+img {
+  max-width: 100%;
+  display: block;
+}

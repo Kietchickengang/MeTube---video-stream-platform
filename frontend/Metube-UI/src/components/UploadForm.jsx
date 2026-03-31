@@ -1,20 +1,19 @@
-import { useState } from "react";
 import '../../public/upVideo.css';
-import * as icon from 'lucide-react';
+import { Info, X, Upload, CircleQuestionMark } from 'lucide-react';
 
-export const UpVideo = () => {
+const UploadForm = () => {
     return (
         <div className="upVideoBox">
             <div className="p1">
                 <p>Upload your video</p>
                 <div className="ext&info" style={{display: "flex", flexDirection: 'row', gap: '10px', alignItems: 'center', justifyContent: 'center'}}>
-                    <icon.Info style={{width: '2vw', height: '2vw', fontStyle: 'normal'}} className="p1_Icon1"></icon.Info>
-                    <icon.X style={{width: '2vw', height: '2vw'}} className="p1_Icon2"></icon.X>
+                    <Info style={{width: '2vw', height: '2vw', fontStyle: 'normal'}} className="p1_Icon1" />
+                    <X style={{width: '2vw', height: '2vw'}} className="p1_Icon2" />
                 </div>
             </div>
             <div className="divider"></div>
             <div className="p2">
-                <div className="upVideoIco"><icon.Upload style={{width: '5vw', height: '5vw'}} color="#C0C0C0"></icon.Upload></div>
+                <div className="upVideoIco"><Upload style={{width: '5vw', height: '5vw'}} color="#C0C0C0" /></div>
                 <div style={{fontSize: "1.25vw", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center"}}>
                     <p>Drag and drop video file to upload</p>
                     <p style={{marginTop: "1px"}}>Your video will be private until you publish it.</p>
@@ -37,8 +36,8 @@ export const DetailStep = () => {
             <div className="p1" style={{}}>
                 <p></p>
                 <div className="ext&info" style={{display: "flex", flexDirection: 'row', gap: '10px', alignItems: 'center', justifyContent: 'center'}}>
-                    <icon.Info style={{width: '2vw', height: '2vw', fontStyle: 'normal'}} className="p1_Icon1"></icon.Info>
-                    <icon.X style={{width: '2vw', height: '2vw'}} className="p1_Icon2"></icon.X>
+                    <Info style={{width: '2vw', height: '2vw', fontStyle: 'normal'}} className="p1_Icon1" />
+                    <X style={{width: '2vw', height: '2vw'}} className="p1_Icon2" />
                 </div>
             </div>
             <div className="divider"></div>
@@ -47,13 +46,13 @@ export const DetailStep = () => {
                     <div className="detailBlock">
                         <p style={{marginBottom: '1.8vh'}}>Detail</p>
                         <div className="titleBox" style={{fontSize: '1.1vw', border: '1px solid #848482', borderRadius: '10px', padding: '0 0.5vw 0 0.5vw'}}>
-                            <p>Title (required) <icon.CircleQuestionMark style={{width: '1vw', height: '1vw'}}></icon.CircleQuestionMark></p>
+                            <p>Title (required) <CircleQuestionMark style={{width: '1vw', height: '1vw'}} /></p>
                             <textarea className="txtAreaBox" maxLength={100} spellCheck={false} required style={{resize: 'none', width: '40vw', height: '3.5vh', border: 'none', backgroundColor: '#555555'}}
                                 placeholder="Add a title that describes your video (type @ to mention a channel)">
                             </textarea>
                         </div>
                         <div className="descriptionBox" style={{fontSize: '1.1vw', border: '1px solid #848482', borderRadius: '10px', padding: '0 0.5vw 0 0.5vw', marginTop: '2.5vh'}}>
-                            <p>Description (required) <icon.CircleQuestionMark style={{width: '1vw', height: '1vw'}}></icon.CircleQuestionMark></p>
+                            <p>Description (required) <CircleQuestionMark style={{width: '1vw', height: '1vw'}} /></p>
                             <textarea className="txtAreaBox" maxLength={5000} spellCheck={false} required style={{resize: 'none', width: '40vw', height: '15vh', border: 'none', backgroundColor: '#555555'}}
                                 placeholder="Tell viewers about your video (type @ to mention a channel)">
                             </textarea>
@@ -68,3 +67,5 @@ export const DetailStep = () => {
         </div>
     )
 }
+
+export default UploadForm;
