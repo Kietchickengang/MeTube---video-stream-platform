@@ -7,6 +7,7 @@ export const MOCK_VIDEOS = [
     channelName: "UIT Developer",
     channelAvatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix",
     views: "150K",
+    liked: "8386",
     postedAt: "2 giờ trước",
     duration: "12:35",
     description: "Trong video này, chúng ta sẽ khám phá cách xây dựng một ứng dụng web hiện đại sử dụng React 19 và Tailwind CSS. Từ setup project đến deployment."
@@ -19,6 +20,7 @@ export const MOCK_VIDEOS = [
     channelName: "CyberSec Lab",
     channelAvatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka",
     views: "45K",
+    liked: "8386",
     postedAt: "1 ngày trước",
     duration: "45:00",
     description: "Hướng dẫn chi tiết về reverse engineering shellcode. Phù hợp cho người mới bắt đầu trong lĩnh vực an ninh mạng."
@@ -31,6 +33,7 @@ export const MOCK_VIDEOS = [
     channelName: "AI Academy",
     channelAvatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Charlie",
     views: "200K",
+    liked: "8386",
     postedAt: "3 ngày trước",
     duration: "30:15",
     description: "Khóa học machine learning cơ bản sử dụng Python và scikit-learn. Bao gồm regression, classification và clustering."

@@ -1,10 +1,9 @@
-import UploadForm from "../components/UploadForm";
+import UploadWizard from "../components/UploadForm";
 
-const UploadPage = () => {
+const UploadPage = ({isClose}) => {
   return (
-    <div className="mt-14 p-4">
-      <h1 className="text-2xl font-bold mb-6">Upload Video</h1>
-      <UploadForm />
+    <div className="mt-0 p-4">
+      <UploadWizard closeUploadPage={isClose}/>
     </div>
   );
 };

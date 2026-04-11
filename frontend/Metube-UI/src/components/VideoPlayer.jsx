@@ -37,8 +37,8 @@ const VideoPlayer = ({ video }) => {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto">
-      <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
+    <div className="w-full max-w-4xl mx-auto mt-10">
+      <div className="relative aspect-video bg-black rounded-xl overflow-hidden">
         <video
           ref={videoRef}
           src={video.videoUrl} // Assuming video object has videoUrl

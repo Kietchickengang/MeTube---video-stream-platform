@@ -1,6 +1,6 @@
 import { Search, Menu, Video, Bell, User, Mic, Play, Plus } from "lucide-react";
 
-const Navbar = () => {
+const Navbar = ({goToUploadPage}) => {
   return (
     <nav className="fixed top-0 w-full bg-[#0f0f0f] text-white flex justify-between items-center px-4 h-14 z-50">
       
@@ -39,7 +39,8 @@ const Navbar = () => {
 
       {/* 3. Bên phải: Actions & Profile */}
       <div className="flex items-center gap-1 md:gap-4">
-        <button className="p-2 hover:bg-[#272727] rounded-full hidden sm:block text-white">
+        <button className="p-2 hover:bg-[#272727] rounded-full hidden sm:block text-white" onClick={goToUploadPage}>
+        {/* Hiện form để đăng video khi click vào button này */}
           <Plus size={24} strokeWidth={1.5} />
         </button>
         <button className="p-2 hover:bg-[#272727] rounded-full hidden sm:block text-white">
@@ -51,7 +52,7 @@ const Navbar = () => {
           <div className="border-2 border-[#999999] rounded-full p-0.5">
             <User size={20} strokeWidth={3}/>
           </div>
-          <span className="text-[16px] font-bold hidden md:inline hover:no-underline hover:!text-[#FCF75E]">Đăng nhập</span>
+          <span className="text-[16px] font-bold hidden md:inline hover:no-underline hover:!text-[#FF3366]">Đăng nhập</span>
         </button>
       </div>
     </nav>

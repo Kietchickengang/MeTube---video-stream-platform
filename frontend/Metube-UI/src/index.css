@@ -52,3 +52,8 @@ img {
   max-width: 100%;
   display: block;
 }
+
+::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+  color: #6c757d !important;
+  opacity: 1; /* Firefox */
+}
