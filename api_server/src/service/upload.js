@@ -3,13 +3,14 @@ import multer from 'multer';
 import "dotenv/config";
 
 import vietnix from "../config/storage.js";
-import { vnTimeString, checkValidFormat } from "../util/helper.js";
+import { vnTimeString } from "../util/helper.js";
+import { validFileExtension } from '../middleware/validate.js';
 
 const raw_video_bucket = process.env.BUCKET_RAW_VIDEO;
 
 export const getCommand = (file, bucket, key) => {
     const filename = file.originalname;
-    if(!checkValidFormat(filename)) throw new Error("Unsupport this file's extension");
+    if(!validFileExtension(filename)) throw new Error("Unsupport this file's extension");
 
     const command = new PutObjectCommand({
         ACL: "private",
@@ -23,7 +24,7 @@ export const getCommand = (file, bucket, key) => {
 
 export const uploadRawVid = async(file) => {
     const filename = file.originalname;
-    if(!checkValidFormat(filename)) throw new Error("Unsupport this file's extension");
+    if(!validFileExtension(filename)) throw new Error("Unsupport this file's extension");
 
     const key = `videos/${vnTimeString}_${filename}`;
     const my_command = getCommand(file, raw_video_bucket, key);

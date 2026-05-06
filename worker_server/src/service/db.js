@@ -31,12 +31,15 @@ export const testDB = async() => await videos.insertOne(sampleTest);
 // Set up database operations
 export const VideoDB_operation = {
   // CREATE
-  async create(data) { return videos.insertOne(createTimestamps(data)); },
+  async create(data) { return videos.insertOne(createTimestamps(data)); 
+  },
 
   // FIND
-  async findById(id) { return videos.findOne({ _id: new ObjectId(id) }); },
+  async findById(id) { return videos.findOne({ _id: new ObjectId(id) }); 
+  },
 
-  async findByVideoId(videoId) { return videos.findOne({ videoId }); },
+  async findByVideoId(videoId) { return videos.findOne({ videoId }); 
+  },
 
   // UPDATE
   async updateById(id, data) {
@@ -57,7 +60,9 @@ export const VideoDB_operation = {
         $currentDate: { updatedAt: true },
       }
     );
-  }
+  },
 
   // DELETE
+  async deleteByVideoId(videoId){ return videos.deleteOne({videoId: videoId}); 
+  },
 };

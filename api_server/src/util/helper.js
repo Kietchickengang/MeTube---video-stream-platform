@@ -12,13 +12,6 @@ export const vnTimeString = now.toLocaleString("vi-VN", {
 })
 .replace(/[ /]/g, change => replacePattern[change]);
 
-export const getFileExtension = (filename) => {return filename.split(".").pop();}
-
-export const checkValidFormat = (filename) => {
-    const file_extension = getFileExtension(filename);
-    return ['mp4', 'mov', 'avi', 'mkv', 'wmv', 'webm'].includes(file_extension);
-}
-
 export const createTimestamps = (data) => {
   const now = new Date();
   return {...data,
