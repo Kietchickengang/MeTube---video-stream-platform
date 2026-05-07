@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:3000/api'; // Adjust based on your backend port
+const API_BASE_URL = 'http://localhost:3000/api';
 
 export const fetchVideos = async () => {
   try {

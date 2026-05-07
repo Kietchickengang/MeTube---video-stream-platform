@@ -1,15 +1,29 @@
 import React, { useState, useRef , useEffect } from 'react';
 import { Info, X, Upload, CircleHelp, ImagePlus, Sparkles, Pyramid, SearchCheck, LoaderCircle} from 'lucide-react';
 
-import toast, { Toaster } from 'react-hot-toast';
+import { Toaster } from 'react-hot-toast';
 import axios from 'axios';
+import { notifyError, notifySuccess, notifyEmpty } from '../helper/popUp.js';
+
+// S1 - Presigned URL
+// S2 - Initialize DB with videoId & status = "uploading"
+// S3 - Upload raw video to Vietnix
+import { uploadS3 } from '../service/uploadRaw.js'; 
+
+// S4 - Upload done & confirm with api server
+// S5 - Api server checks upload confirmation
+// S6 - Api server updates DB with status = "processing"
+import { uploadCnf } from '../service/apiCnf.js';
+
+// S7 - When 
 
 const UploadWizard = ({closeUploadPage}) => {
-    const [step, setStep] = useState(1); // Step 1: Upload, Step 2: Details
+    const [page, setPage] = useState(1); // Page 1: Upload, Page 2: Details
     const [file, setFile] = useState(null);
     const [isDragging, setIsDragging] = useState(false);
     const [previewVid, setPreviewVid] = useState(null);
-    const [progress, setProgress] = useState(false);
+    const [progress, setProgress] = useState(0);
+    const [vidKey, setVidKey] = useState(null);
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
 
@@ -25,7 +39,7 @@ const UploadWizard = ({closeUploadPage}) => {
         // Security check: Only allow video file
         if (uploadedFile && uploadedFile.type.startsWith('video/')) {
             setFile(uploadedFile);
-            setStep(2); // Auto go to Detail
+            setPage(2); // Auto go to Detail
         } else {
             alert("Please select valid file (mp4, mov...)");
         }
@@ -44,23 +58,36 @@ const UploadWizard = ({closeUploadPage}) => {
         handleFiles(e.dataTransfer.files);
     };
 
-    // Set video preview delayed for 1 second
-    useEffect(() => {
-        if(step === 2){
-            const reloadProgressBar = setTimeout(() => {
-                setProgress(true);
-            }, 1000);
-            return () => clearTimeout(reloadProgressBar);
-        }
-    }, [step])
-
     // --- VIDEO PREVIEW ---
     // Create local URL when user selected file
     useEffect(() => {
-        if(file !== null){
+        if(file){
             // Create a temporary URL for video file
             const tmpURL = URL.createObjectURL(file);
             setPreviewVid(tmpURL);
+
+            const startVideoProcess = async() => {
+                try{
+                    // Progress bar starts with 0%
+                    setProgress(0);
+                    const key = await uploadS3(file, (percent) => setProgress(percent));
+                    // Save video key for next step
+                    setVidKey(key)
+                    // UI confirms upload status with api server
+                    // Api server checks UI's confirmation & updates DB status
+                    await uploadCnf(key, {
+                        title: title,
+                        description: description,
+                    });
+                }
+                catch(err){
+                    console.error(err);
+                    notifyError(err.message); // Use "err" will trigger error
+                }
+            }
+            // Start upload video process right after user dragged or selected file
+            startVideoProcess();
+
             // Clean up to prevent memory leak
             return () => URL.revokeObjectURL(tmpURL);
         }
@@ -70,47 +97,22 @@ const UploadWizard = ({closeUploadPage}) => {
     const handleSubmit = async (e) => {
         // Avoid reload page
         e.preventDefault();
-        // Warning if title is empty
-        if(!title.trim()){
-            notify("video title");
+
+        // Warning if have any empty input
+        if(!title.trim() || !description.trim()){
+            notifyEmpty(`Your ${!title.trim()? "title" : "description"}`);
             return;
         }
-        // Warning if description is empty
-        if(!description.trim()){
-            notify("video description");
-            return
-        }
+
         // All requirement satisfied then
         // --- HANDLE UPLOAD PROCEDURE ---
         try{
-            const port = 8000;
-            const host = `http://localhost:${port}/metube/videos`;
-            // Request for presigned URL
-            const vietnixRep = await axios.post(`${host}/presigned-URL`,{
-                fileName: file.name,
-                contentType: file.type,
-            });
-
-            const { url, key } = vietnixRep.data;
-            // Upload raw video to Vietnix using presigned URL
-            await axios.put(url, file, {
-                headers: {
-                    "Content-Type": file.type,
-                }
-            })
-            // Upload done confirmation before transcoding
-            await axios.post(`${host}/${key}/cnf`,{
-                title: title,
-                description: description,
-            })
+            // Push lefting jobs for worker server to handle
         }
         catch(err){
             console.error("Upload Error:", err);
         }
     };
-
-    // --- WARNING ---
-    const notify = (e) => toast.error(`Your ${e} is empty`);
 
     // --- UPLOAD FORM ---
     const UploadStep = () => (
@@ -122,7 +124,7 @@ const UploadWizard = ({closeUploadPage}) => {
                 onDragLeave={onDragLeave}
                 onDrop={onDrop}
             >
-            {/* This div giúp chống nháy tùm lum chữ khi drag */}
+            {/* Stablize card when dragging video file */}
             <div className={`card-content ${isDragging ? 'pointer-events-none' : ''}`} style={{ pointerEvents: isDragging ? 'none' : 'auto' }}>
                 <div className="card-header d-flex justify-content-between align-items-center border-secondary py-3">
                     <h5 className="mb-0 fw-bold">Upload your video</h5>
@@ -157,9 +159,9 @@ const UploadWizard = ({closeUploadPage}) => {
             </div>
         </div>       
     </div>
-    );
+);
 
-    return step === 1? <UploadStep/> : (
+    return page === 1? <UploadStep/> : (
         <DetailStep
             file={file}
             previewVid={previewVid}
@@ -169,13 +171,13 @@ const UploadWizard = ({closeUploadPage}) => {
             description={description}
             setDescription={setDescription}
             handleSubmit={handleSubmit}
-            setStep={setStep}
+            setPage={setPage}
         />
     );
 };
 
 // --- DETAIL STEP ---
-    const DetailStep = ({ file, previewVid, progress, title, setTitle, description, setDescription, handleSubmit, setStep }) => {
+    const DetailStep = ({ file, previewVid, progress, title, setTitle, description, setDescription, handleSubmit, setPage }) => {
         const thumbnailExt = [
             {icon: ImagePlus, content: "Upload file"},
             {icon: Sparkles , content: "Auto generate"},
@@ -193,7 +195,7 @@ const UploadWizard = ({closeUploadPage}) => {
             <div className="card bg-dark text-white shadow-lg border-0" style={{ borderRadius: '25px', maxWidth: '1100px'}}>
                 <div className="card-header d-flex justify-content-between align-items-center border-secondary py-3 bg-transparent">
                     <h5 className="mb-0 fw-bold text-truncate" style={{maxWidth: '70%'}}>File: {file?.name}</h5>
-                    <X className="text-secondary cursor-pointer" onClick={() => setStep(1)} size={20} />
+                    <X className="text-secondary cursor-pointer" onClick={() => setPage(1)} size={20} />
                 </div>
                 <div className="card-body p-4" style={{ 
                     maxHeight: '70vh',
@@ -245,17 +247,14 @@ const UploadWizard = ({closeUploadPage}) => {
                             <div className="card bg-black border-secondary">
                                 <div className="ratio ratio-16x9 bg-secondary bg-opacity-25 d-flex align-items-center justify-content-center">
                                     {
-                                        (previewVid && progress)? (
-                                            <video src={previewVid} autoPlay loop controls className="w-100 h-100 rounded-tl rounded-tr" style={{objectPosition:'contain'}}/>
+                                        (previewVid && progress === 100)? (
+                                           <video src={previewVid} autoPlay loop controls className="w-100 h-100 rounded-tl rounded-tr" style={{objectPosition:'contain'}}/>
                                         ):(<span className="text-secondary small text-center px-2 italic mt-2">Video Preview</span>)
                                     }
                                 </div>
                                 <div className="card-body p-3">
                                     <div className="progress bg-secondary bg-opacity-25" style={{height: '7px'}}>
-                                        {
-                                            progress? (<div className="progress-bar progress-bar-animated" style={{width: "100%"}}></div>):
-                                                      (<div className="progress-bar progress-bar-striped progress-bar-animated" style={{width: "45%"}}></div>)
-                                        }
+                                        <div className={`progress-bar ${progress < 100? "progress-bar-striped" : ""} progress-bar-animated`} style={{width: `${progress}%`}}></div>
                                     </div>
                                 </div>
                             </div>
@@ -263,10 +262,11 @@ const UploadWizard = ({closeUploadPage}) => {
                     </div>
                 </div>
                 <div className="card-footer border-secondary flex flex-row align-items-center justify-between p-3 bg-transparent py-1">
-                    {progress? (<p className="text-[#666666] text-sm flex flex-row gap-2 mt-3"><SearchCheck color='white'></SearchCheck>Inspection completed. No issues found.</p>):
-                               (<p className="text-[#666666] text-sm flex flex-row gap-2 mt-3">Loading<LoaderCircle color='white' className='animate-spin'></LoaderCircle></p>)
+                    {progress === 100? 
+                        (<p className="text-[#666666] text-sm flex flex-row gap-2 mt-3"><SearchCheck color='white'></SearchCheck>Inspection completed. No issues found.</p>):
+                        (<p className="text-[#666666] text-sm flex flex-row gap-2 mt-3">Loading<LoaderCircle color='white' className='animate-spin'></LoaderCircle></p>)
                     }
-                        <button type="submit" disabled={!progress} className="btn btn-primary px-4 fw-bold">PUBLISH</button>
+                        <button type="submit" disabled={progress < 100} className="btn btn-primary px-4 fw-bold">PUBLISH</button>
                 </div>
             </div>
         </div>

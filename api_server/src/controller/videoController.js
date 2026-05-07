@@ -3,9 +3,11 @@ import { getPresignedURL } from '../util/presignedURL.js';
 import { uploadRawVid } from '../service/upload.js';
 import { checkHeadRequestS3 } from "../middleware/validate.js";
 import { VideoDB_operation } from "../../../worker_server/src/service/db.js";
+import { vnTimeString } from "../util/helper.js";
+import { standardInputDB } from "../model/videoModel.js";
 
 const raw_video_bucket = process.env.BUCKET_RAW_VIDEO;
-const { updateStatus, findByVideoId } = VideoDB_operation;
+const { updateStatus, findByVideoId, create } = VideoDB_operation;
 
 export const generatePresignedURL = async(req, res) => {
     try{
@@ -36,6 +38,7 @@ export const uploadVideo = async(req, res) => {
         return res.status(201).json({
             message: "Upload successfully",
             data: res_data,
+            time: vnTimeString,
         });
     }
     catch(err){
@@ -57,6 +60,7 @@ export const confirmUpload = async(req, res) => {
         })
         return res.status(200).json({
             message: "Valid video, upload confirmation successfully",
+            time: vnTimeString,
         })
     }
     catch(err){
@@ -68,38 +72,60 @@ export const confirmUpload = async(req, res) => {
     }
 }
 
-export const updateStatusDB = async(req, res) => {
-    try{
-        const { videoId } = req.params;
-        await updateStatus(videoId, "processing");
-        return res.status(200).json({
-            message: `Updated video ${videoId}'s status`,
-        })
-    }
-    catch(err){
-        console.log(`Can not update Database: ${err}`);
-        return res.status(500).json({
-            message: "Update failed.Try again",
-            error: err.message,
-        })
-    }
-}
-
 export const checkStatusUpload = async(req, res) => {
     try{
         const { videoId } = req.params;
         const uploadVideo = await findByVideoId(videoId);
         return res.status(200).json({
-            message: `Accessed information from Database`,
+            message: "Accessed information from Database successfully",
             data: {
                 uploadStatus: uploadVideo.status,
-            }
+            },
+            time: vnTimeString,
         })
     }
     catch(err){
         console.log(`Can not get information from Database: ${err}`);
         return res.status(500).json({
             message: "Get information failed.Try again",
+            error: err.message,
+        })
+    }
+}
+
+export const updateProcessStatus = async(req, res) => {
+    try{
+        const { videoId } = req.params;
+        const updateProcessingStatus = await updateStatus(videoId, "processing");
+        return res.status(200).json({
+            message: "Updated processing status for video successfully",
+            time: vnTimeString,
+        }) 
+    }
+    catch(err){
+        console.log(`Can not update processing status for video: ${err}`);
+        return res.status(500).json({
+            message: "Update processing status failed.Try again",
+            error: err.message,
+        })
+    }
+}
+
+export const initStatusDB = async(req, res) => {
+    try{
+        const { videoId } = req.params;
+        await create(standardInputDB({
+            videoId: videoId,
+        }));
+        return res.status(200).json({
+            message: "Initialized DB successfully",
+            time: vnTimeString,
+        })
+    }
+    catch(err){
+        console.log(`Can not initialize DB for video: ${err}`);
+        return res.status(500).json({
+            message: "Initialized DB failed.Try again",
             error: err.message,
         })
     }

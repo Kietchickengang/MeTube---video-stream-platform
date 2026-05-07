@@ -1,7 +1,8 @@
 import express from 'express';
 
 import { upload } from '../middleware/uploadFile.js';
-import { generatePresignedURL, uploadVideo, confirmUpload, updateStatusDB, checkStatusUpload } from '../controller/videoController.js';
+import { generatePresignedURL, uploadVideo, confirmUpload, initStatusDB, 
+    checkStatusUpload, updateProcessStatus } from '../controller/videoController.js';
 
 const router = express.Router();
 
@@ -13,8 +14,10 @@ router.post("/presigned-URL", generatePresignedURL);
 
 router.post("/:videoId/cnf", confirmUpload);
 
-router.post("/:videoId/upProcess", updateStatusDB);
+router.post("/:videoId/initVidDB", initStatusDB);
 
 router.get("/:videoId/upStatus", checkStatusUpload);
+
+router.patch("/:videoId/processStatus", updateProcessStatus);
 
 export default router;

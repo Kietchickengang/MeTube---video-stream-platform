@@ -8,7 +8,7 @@ export const standardInputDB = (data) => {
     return {
         videoId: videoId,
         userId: new ObjectId(userId),
-        title: title,
+        title: title || "",
 
         description: description || "",
         status: "uploading",

@@ -16,6 +16,7 @@
     "@aws-sdk/s3-request-presigner": "^3.1041.0",
     "bullmq": "^5.76.1",
     "cors": "^2.8.6",
+    "crypto-js": "^4.2.0",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "ioredis": "^5.10.1",
