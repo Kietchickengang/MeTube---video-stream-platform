@@ -52,6 +52,16 @@ export const VideoDB_operation = {
     );
   },
 
+  async updateByVideoId(videoId, data) {
+    return videos.updateOne(
+      { videoId },
+      {
+        $set: data,
+        $currentDate: { updatedAt: true },
+      }
+    );
+  },
+
   async updateStatus(videoId, status) {
     return videos.updateOne(
       { videoId },
