@@ -1,8 +1,11 @@
 import express from 'express';
 
 import { upload } from '../middleware/uploadFile.js';
-import { generatePresignedURL, uploadVideo, confirmUpload, initStatusDB, 
-    checkStatusUpload, updateProcessStatus } from '../controller/videoController.js';
+import { generatePresignedURL, uploadVideo, confirmUpload, initStatusDB, checkStatusUpload, updateProcessStatus } from '../controller/videoController.js';
+
+// --- Note: Because vietnix key's format is "videos/{videoId}""
+// ---       so it need encrypting before requesting api (route confirmUpload)
+// ---       or else it will trigger error because the splash ("/")
 
 const router = express.Router();
 

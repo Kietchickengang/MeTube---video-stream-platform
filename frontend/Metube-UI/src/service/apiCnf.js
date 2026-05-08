@@ -1,6 +1,7 @@
 import axios from "axios"
-import { genHash } from "../../../../api_server/src/middleware/hash.js";
+
 const api_port = import.meta.env.VITE_API_SERVER_PORT;
+const secret_key = import.meta.env.VITE_AES_SECRET_KEY;
 const host = `http://localhost:${api_port}/metube`;
 
 // 4> Upload done confirmation before transcoding (Default)
@@ -23,8 +24,6 @@ const apiCnf = async(key, metadata) => {
 
 // 6> Api server updates DB with status = "processing"
 
-// --- LOGIC HERE IS STILL INCOMPLETE :) --- 
-
 const apiUpdateDB = async (key) => {
     try{
         await axios.patch(`${host}/${key}/processStatus`);
@@ -36,9 +35,7 @@ const apiUpdateDB = async (key) => {
 }
 
 export const uploadCnf = async(key, metadata) => {
-    const hashedKey = genHash(key);
+    await apiCnf(key, metadata);
 
-    await apiCnf(hashedKey, metadata);
-
-    await apiUpdateDB(hashedKey);
+    await apiUpdateDB(key);
 }

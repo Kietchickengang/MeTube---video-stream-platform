@@ -5,8 +5,10 @@ import { checkHeadRequestS3 } from "../middleware/validate.js";
 import { VideoDB_operation } from "../../../worker_server/src/service/db.js";
 import { vnTimeString } from "../util/helper.js";
 import { standardInputDB } from "../model/videoModel.js";
+import { decrypting } from "../middleware/AES.js";
 
 const raw_video_bucket = process.env.BUCKET_RAW_VIDEO;
+const secret_key = process.env.AES_SECRET_KEY; 
 const { updateStatus, findByVideoId, create } = VideoDB_operation;
 
 export const generatePresignedURL = async(req, res) => {
@@ -54,7 +56,9 @@ export const confirmUpload = async(req, res) => {
     try{
         // Extract videoId from client request
         const { videoId } = req.params;
-        const fileIsExist = await checkHeadRequestS3(raw_video_bucket, videoId);
+        const decryptVideoId = decrypting(secret_key, videoId);
+
+        const fileIsExist = await checkHeadRequestS3(raw_video_bucket, decryptVideoId);
         if(!fileIsExist) return res.status(400).json({
             message: "Video is not existed",
         })
@@ -114,6 +118,7 @@ export const updateProcessStatus = async(req, res) => {
 export const initStatusDB = async(req, res) => {
     try{
         const { videoId } = req.params;
+        // Hash videoId from vietnix by default
         await create(standardInputDB({
             videoId: videoId,
         }));

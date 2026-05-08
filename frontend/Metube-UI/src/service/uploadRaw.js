@@ -1,7 +1,9 @@
 import axios from 'axios';
-import { genHash } from '../../../../api_server/src/middleware/hash.js';
+import { encrypting } from '../../../../api_server/src/middleware/AES.js';
 // .env format in Vite
+
 const api_port = import.meta.env.VITE_API_SERVER_PORT;
+const secret_key = import.meta.env.VITE_AES_SECRET_KEY;
 const host = `http://localhost:${api_port}/metube`;
 
 export const uploadS3 = async(file, progress) => {
@@ -16,10 +18,11 @@ export const uploadS3 = async(file, progress) => {
         });
 
         const { url, key } = vietnixRep.data;
+        const encryptKey = encrypting(secret_key, key);
         
         // 2> Initialize status = "uploading" for file video
         try{
-            await axios.post(`${host}/${genHash(key)}/initVidDB`)
+            await axios.post(`${host}/${encryptKey}/initVidDB`)
         }
         catch(err)
         {
@@ -40,7 +43,7 @@ export const uploadS3 = async(file, progress) => {
         })
 
         // Return key(videoId) for UI to confirm with Api server
-        return key;
+        return encryptKey;
     }
     catch(err){
         console.error("Error when uploading video to S3: ", err);
