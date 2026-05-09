@@ -9,15 +9,22 @@ const host = `http://localhost:${api_port}/metube`;
 export const uploadS3 = async(file, progress) => {
     if(!file) throw new Error('Empty video file'); 
     try{
-        const { name, type } = file;
+        const { name, type, size } = file;
 
         // 1> Request for presigned URL
         const vietnixRep = await axios.post(`${host}/presigned-URL`,{
             fileName: name,
             contentType: type,
+            fileSize: size,
         });
 
-        const { url, key } = vietnixRep.data;
+        const { url, key, fields } = vietnixRep.data;
+        const formData = new FormData();
+        Object.entries(fields).forEach(([k, v]) => {
+            formData.append(k, v);
+        });
+        formData.append("file", file);
+
         const encryptKey = encrypting(secret_key, key);
         
         // 2> Initialize status = "uploading" for file video
@@ -31,10 +38,7 @@ export const uploadS3 = async(file, progress) => {
         }
 
         // 3> Upload raw video to Vietnix using presigned URL
-        await axios.put(url, file, {
-            headers: {
-                "Content-Type": file.type,
-            },
+        await axios.post(url, formData, {
             // Calculate complete percent & display in progress bar
             onUploadProgress: (e) => {
                 const completePercent = Math.round((e.loaded * 100) / e.total);

@@ -2,7 +2,7 @@ import toast from 'react-hot-toast';
  
 // Notify "Nothing"
 export const notifyEmpty = (field) => {
-    toast.error(`Your ${field} is empty`, {
+    toast.error(`${field} is empty`, {
         position: 'top-right',
         duration: 1000,
     });

@@ -3,28 +3,43 @@ import "dotenv/config";
 
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
+
 import { vnTimeString } from "./helper.js";
-import { validMimeType } from "../middleware/validate.js";
+import { validMimeType, validFileExtension, validFileSize } from "../middleware/validate.js";
 
 // Return temporary presigned URL & key 
 export const getPresignedURL = async({
     fileName, 
     bucket, 
     contentType, 
+    fileSize,
     expiresIn = 60 * 10, // Set TTL = 10 minutes
 }) => {
-    if(!validMimeType(contentType)) throw new Error("Unsupported MIME type");
 
-    const key = `videos/${vnTimeString}_${fileName}`;
-    const my_command = new PutObjectCommand({
+    if(!validMimeType(contentType)) throw new Error("Unsupported MIME type");
+    if(!validFileExtension(fileName)) throw new Error("Invalid or unsupported file extension");
+    if(!validFileSize(fileSize)) throw new Error("File exceeded allowed file size restriction");
+
+    const key = `videos/${vnTimeString()}_${fileName}`;
+    
+    // Enforce Vietnix to auto reject file that has unallowed MIME type & size > 500MB
+    const { url, fields } = await createPresignedPost(vietnix, {
         Bucket: bucket,
         Key: key,
-        ContentType: contentType,
+        Conditions: [
+            ["content-length-range", 0, 500 * 1024 * 1024],
+            ["eq", "$Content-Type", contentType],
+        ],
+        Fields: {
+            "Content-Type": contentType, 
+        },
+        Expires: expiresIn,
     });
 
-    const presignedURL = await getSignedUrl(vietnix, my_command, {expiresIn});
     return {
-        url: presignedURL,
+        url: url,
+        fields: fields, 
         videoId: key,
     }
 }

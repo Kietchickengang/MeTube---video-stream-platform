@@ -1,6 +1,6 @@
 import "dotenv/config";
+import { VIDEO_STATUS } from "../util/constants.js";
 import { getPresignedURL } from '../util/presignedURL.js';
-import { uploadRawVid } from '../service/upload.js';
 import { checkHeadRequestS3 } from "../middleware/validate.js";
 import { VideoDB_operation } from "../../../worker_server/src/service/db.js";
 import { vnTimeString } from "../util/helper.js";
@@ -9,20 +9,23 @@ import { decrypting } from "../middleware/AES.js";
 
 const raw_video_bucket = process.env.BUCKET_RAW_VIDEO;
 const secret_key = process.env.AES_SECRET_KEY; 
-const { updateStatus, findByVideoId, create } = VideoDB_operation;
+
+const { updateStatus, updateByVideoId, findByVideoId, create } = VideoDB_operation;
 
 export const generatePresignedURL = async(req, res) => {
     try{
-        const { fileName, contentType } = req.body;
-        const { url, videoId } = await getPresignedURL({
+        const { fileName, contentType, fileSize } = req.body;
+        const { url, fields, videoId } = await getPresignedURL({
             fileName: fileName, 
             bucket: raw_video_bucket,
             contentType: contentType,
+            fileSize: fileSize,
         });
 
         return res.status(200).json({
             url: url,
             key: videoId,
+            fields: fields,
         })
     }
     catch(err){
@@ -34,37 +37,23 @@ export const generatePresignedURL = async(req, res) => {
     }
 }
 
-export const uploadVideo = async(req, res) => {
-    try{
-        const res_data = await uploadRawVid(req.file);
-        return res.status(201).json({
-            message: "Upload successfully",
-            data: res_data,
-            time: vnTimeString,
-        });
-    }
-    catch(err){
-        console.log(`Upload failed: ${err.message}`);
-        return res.status(500).json({
-            message: "Upload failed.Try again",
-            error: err.message,
-        });
-    }
-}
-
 export const confirmUpload = async(req, res) => {
     try{
         // Extract videoId from client request
         const { videoId } = req.params;
         const decryptVideoId = decrypting(secret_key, videoId);
 
+        // Check if video file is available in Vietnix
         const fileIsExist = await checkHeadRequestS3(raw_video_bucket, decryptVideoId);
         if(!fileIsExist) return res.status(400).json({
             message: "Video is not existed",
         })
         return res.status(200).json({
             message: "Valid video, upload confirmation successfully",
-            time: vnTimeString,
+            data: {
+                status: VIDEO_STATUS.PROCESSING,
+            },
+            time: vnTimeString(),
         })
     }
     catch(err){
@@ -85,7 +74,7 @@ export const checkStatusUpload = async(req, res) => {
             data: {
                 uploadStatus: uploadVideo.status,
             },
-            time: vnTimeString,
+            time: vnTimeString(),
         })
     }
     catch(err){
@@ -97,13 +86,16 @@ export const checkStatusUpload = async(req, res) => {
     }
 }
 
-export const updateProcessStatus = async(req, res) => {
+export const updateSubmitDB = async(req, res) => {
     try{
         const { videoId } = req.params;
-        const updateProcessingStatus = await updateStatus(videoId, "processing");
+        const data = req.body;
+
+        await updateByVideoId(videoId, data);
+
         return res.status(200).json({
             message: "Updated processing status for video successfully",
-            time: vnTimeString,
+            time: vnTimeString(),
         }) 
     }
     catch(err){
@@ -124,7 +116,7 @@ export const initStatusDB = async(req, res) => {
         }));
         return res.status(200).json({
             message: "Initialized DB successfully",
-            time: vnTimeString,
+            time: vnTimeString(),
         })
     }
     catch(err){

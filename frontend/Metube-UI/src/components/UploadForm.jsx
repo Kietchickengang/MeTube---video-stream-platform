@@ -1,9 +1,14 @@
 import React, { useState, useRef , useEffect } from 'react';
-import { Info, X, Upload, CircleHelp, ImagePlus, Sparkles, Pyramid, SearchCheck, LoaderCircle} from 'lucide-react';
+import { Info, X, Upload, CircleHelp, ImagePlus, Sparkles, Pyramid, SearchCheck, LoaderCircle, TentIcon} from 'lucide-react';
 
-import { Toaster } from 'react-hot-toast';
 import axios from 'axios';
+import { Toaster } from 'react-hot-toast';
 import { notifyError, notifySuccess, notifyEmpty } from '../helper/popUp.js';
+import { vnTimeString } from '../../../../api_server/src/util/helper.js';
+import { VIDEO_STATUS } from '../../../../api_server/src/util/constants.js';
+
+// Security check
+import { validFileExtension, validFileSize, validMimeType } from '../helper/security.js';
 
 // S1 - Presigned URL
 // S2 - Initialize DB with videoId & status = "uploading"
@@ -12,10 +17,12 @@ import { uploadS3 } from '../service/uploadRaw.js';
 
 // S4 - Upload done & confirm with api server
 // S5 - Api server checks upload confirmation
-// S6 - Api server updates DB with status = "processing"
+// S6 - Api server sends request for worker server to generate thumbnails
 import { uploadCnf } from '../service/apiCnf.js';
 
-// S7 - When 
+// S7 - Api server updates DB with status = "processing" + title + description + thumbnails when client presses button
+// S8 - Api server pushes work for worker server to handle
+import { whenSubmit } from '../service/afterPress.js';
 
 const UploadWizard = ({closeUploadPage}) => {
     const [page, setPage] = useState(1); // Page 1: Upload, Page 2: Details
@@ -26,6 +33,7 @@ const UploadWizard = ({closeUploadPage}) => {
     const [vidKey, setVidKey] = useState(null);
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
+    const [thumbnailUrl, setThumbnailUrl] = useState("");
 
     // Handle Click to choose file video
     const fileInputRef = useRef(null);
@@ -36,13 +44,27 @@ const UploadWizard = ({closeUploadPage}) => {
     // --- LOGIC HANDLE FILE---
     const handleFiles = (files) => {
         const uploadedFile = files[0];
-        // Security check: Only allow video file
-        if (uploadedFile && uploadedFile.type.startsWith('video/')) {
-            setFile(uploadedFile);
-            setPage(2); // Auto go to Detail
-        } else {
-            alert("Please select valid file (mp4, mov...)");
+        if(!uploadedFile) return;
+
+        const { name, type, size } = uploadedFile;
+        // Check valid MIME
+        if(!validMimeType(type)){
+            notifyError("Unallowed MIME type");
+            return;
         }
+        // Check valid file size
+        if(!validFileSize(size)){
+            notifyError("Exceeded allowed max file size");
+            return;
+        }
+        // Only allow video file extension
+        if(!validFileExtension(name)){
+            notifyError("Unallowed file video extension");
+            return;
+        }
+
+        setFile(uploadedFile);
+        setPage(2);
     };
 
     const onDragOver = (e) => {
@@ -75,10 +97,8 @@ const UploadWizard = ({closeUploadPage}) => {
                     setVidKey(key)
                     // UI confirms upload status with api server
                     // Api server checks UI's confirmation & updates DB status
-                    await uploadCnf(key, {
-                        title: title,
-                        description: description,
-                    });
+                    const cnf = await uploadCnf(key);
+                    if(cnf !== VIDEO_STATUS.PROCESSING) return;
                 }
                 catch(err){
                     console.error(err);
@@ -107,7 +127,16 @@ const UploadWizard = ({closeUploadPage}) => {
         // All requirement satisfied then
         // --- HANDLE UPLOAD PROCEDURE ---
         try{
+            // Update DB with status = "processing" + title + description + thumbnails
+            await whenSubmit(vidKey, {
+                title: title,
+                description: description,
+                status: VIDEO_STATUS.PROCESSING,
+                thumbnailUrl: thumbnailUrl,
+            });
             // Push lefting jobs for worker server to handle
+
+            // Auto close form
         }
         catch(err){
             console.error("Upload Error:", err);
@@ -117,6 +146,10 @@ const UploadWizard = ({closeUploadPage}) => {
     // --- UPLOAD FORM ---
     const UploadStep = () => (
         <div className="container d-flex justify-content-center align-items-center">
+            <Toaster
+                position="top-right"
+                reverseOrder={false}
+            />
             <div 
                 className={`card bg-dark text-white shadow-lg w-100 ${isDragging ? 'border-primary' : 'border-secondary'}`}
                 style={{ minHeight: '500px', maxWidth: '1000px', borderRadius: '15px', borderStyle: isDragging ? 'dotted' : 'solid', borderWidth: '2px', transition: 'all 0.2s ease'}}
@@ -264,7 +297,7 @@ const UploadWizard = ({closeUploadPage}) => {
                 <div className="card-footer border-secondary flex flex-row align-items-center justify-between p-3 bg-transparent py-1">
                     {progress === 100? 
                         (<p className="text-[#666666] text-sm flex flex-row gap-2 mt-3"><SearchCheck color='white'></SearchCheck>Inspection completed. No issues found.</p>):
-                        (<p className="text-[#666666] text-sm flex flex-row gap-2 mt-3">Loading<LoaderCircle color='white' className='animate-spin'></LoaderCircle></p>)
+                        (<p className="text-white text-sm flex flex-row gap-2 mt-3">Loading<LoaderCircle color='white' className='animate-spin'></LoaderCircle></p>)
                     }
                         <button type="submit" disabled={progress < 100} className="btn btn-primary px-4 fw-bold">PUBLISH</button>
                 </div>

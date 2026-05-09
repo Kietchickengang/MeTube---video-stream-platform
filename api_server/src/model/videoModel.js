@@ -1,4 +1,5 @@
 import { ObjectId } from "mongodb";
+import { VIDEO_STATUS } from "../util/constants.js";
 
 export const standardInputDB = (data) => {
     const now = new Date();
@@ -11,7 +12,7 @@ export const standardInputDB = (data) => {
         title: title || "",
 
         description: description || "",
-        status: "uploading",
+        status: VIDEO_STATUS.UPLOADING,
         videoPath: videoPath || "",
         hlsPath: "",
         thumbnailUrl: "",
