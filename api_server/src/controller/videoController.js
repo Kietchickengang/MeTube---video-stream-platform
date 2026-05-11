@@ -6,6 +6,7 @@ import { VideoDB_operation } from "../../../worker_server/src/service/db.js";
 import { vnTimeString } from "../util/helper.js";
 import { standardInputDB } from "../model/videoModel.js";
 import { decrypting } from "../middleware/AES.js";
+import { addJobToQueue } from "../service/queue.js";
 
 const raw_video_bucket = process.env.BUCKET_RAW_VIDEO;
 const secret_key = process.env.AES_SECRET_KEY; 
@@ -123,6 +124,30 @@ export const initStatusDB = async(req, res) => {
         console.log(`Can not initialize DB for video: ${err}`);
         return res.status(500).json({
             message: "Initialized DB failed.Try again",
+            error: err.message,
+        })
+    }
+}
+
+export const callWorker = async(req, res) => {
+    try{
+        const { videoId } = req.params;
+        const { videoPath } = req.body;
+
+        await addJobToQueue({
+            videoId: videoId,
+            videoPath: videoPath
+        })
+
+        return res.status(200).json({
+            message: "Pushed job successfully",
+            time: vnTimeString(),
+        })
+    }
+    catch(err){
+        console.log(`Can not connect to worker service: ${err}`);
+        return res.status(500).json({
+            message: "Call worker service failed.Try again",
             error: err.message,
         })
     }

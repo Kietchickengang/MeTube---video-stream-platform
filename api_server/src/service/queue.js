@@ -13,8 +13,8 @@ export const testMQ = async() => {
 
 // Add job to Redis
 export const addJobToQueue = async(video) => {
+    const { videoId, videoPath } = video;
     try{
-        const { videoId, videoPath } = video;
         await videoQueue.add("processing-line", {
             videoId: videoId,
             videoPath: videoPath,

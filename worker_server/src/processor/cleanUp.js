@@ -5,12 +5,15 @@ import fs from "fs/promises";
 
 
 // Clean raw video & .ts of tempory directory
-export const cleanupTemp = async (tempDir) => {
-  if (!tempDir) return;
-  try {
-    await fs.rm(tempDir, { recursive: true, force: true });
-  } 
-  catch (err) {
-    console.warn(`[Worker] cleanup failed for ${tempDir}:`, err.message || err);
-  }
-};
+export const cleanUpTmp =  async(tempDir) => {
+    if(!tempDir) return;
+    try{
+        await fs.rm(tempDir, {
+            recursive: true,
+            force: true,
+        })
+    }
+    catch(err){
+        console.warn(`[-] Worker cleanuo failed for ${tempDir}:`, err.message || err);
+    }
+}

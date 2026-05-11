@@ -1,11 +1,16 @@
 import React, { useState, useRef , useEffect } from 'react';
-import { Info, X, Upload, CircleHelp, ImagePlus, Sparkles, Pyramid, SearchCheck, LoaderCircle, TentIcon} from 'lucide-react';
+import { Info, X, Upload, CircleHelp, ImagePlus, Sparkles, PenTool, SearchCheck, LoaderCircle, TentIcon} from 'lucide-react';
 
 import axios from 'axios';
 import { Toaster } from 'react-hot-toast';
+
 import { notifyError, notifySuccess, notifyEmpty } from '../helper/popUp.js';
 import { vnTimeString } from '../../../../api_server/src/util/helper.js';
 import { VIDEO_STATUS } from '../../../../api_server/src/util/constants.js';
+import { getFrameFromVideo } from '../helper/pickFrameVid.js';
+import { cleanUploadForm } from '../helper/resetUpload.js';
+
+import ThumbnailPicker from "./ThumbnailOptions.jsx";
 
 // Security check
 import { validFileExtension, validFileSize, validMimeType } from '../helper/security.js';
@@ -17,11 +22,10 @@ import { uploadS3 } from '../service/uploadRaw.js';
 
 // S4 - Upload done & confirm with api server
 // S5 - Api server checks upload confirmation
-// S6 - Api server sends request for worker server to generate thumbnails
 import { uploadCnf } from '../service/apiCnf.js';
 
-// S7 - Api server updates DB with status = "processing" + title + description + thumbnails when client presses button
-// S8 - Api server pushes work for worker server to handle
+// S6 - Api server updates DB with status = "processing" + title + description + thumbnails when client presses button
+// S7 - Api server pushes work for worker server to handle
 import { whenSubmit } from '../service/afterPress.js';
 
 const UploadWizard = ({closeUploadPage}) => {
@@ -34,6 +38,9 @@ const UploadWizard = ({closeUploadPage}) => {
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [thumbnailUrl, setThumbnailUrl] = useState("");
+    const [autoGenThumb, setAutoGenThumb] = useState(null);
+    const [pickedThumb, setPickedThumb] = useState(null);
+    const [uploadThumb, setUploadThumb] = useState(null);
 
     // Handle Click to choose file video
     const fileInputRef = useRef(null);
@@ -80,8 +87,17 @@ const UploadWizard = ({closeUploadPage}) => {
         handleFiles(e.dataTransfer.files);
     };
 
+    const cleanUp = () => {
+        closeUploadPage(
+            {setFile, setPreviewVid, setProgress, setVidKey, setTitle, setDescription, 
+             setThumbnailUrl, setAutoGenThumb, setPickedThumb, setUploadThumb})
+        setPage(1);
+    }
+
     // --- VIDEO PREVIEW ---
     // Create local URL when user selected file
+    // Note: useEffect(() => {}, [e])
+    // ----  Run if state/props change
     useEffect(() => {
         if(file){
             // Create a temporary URL for video file
@@ -107,11 +123,17 @@ const UploadWizard = ({closeUploadPage}) => {
             }
             // Start upload video process right after user dragged or selected file
             startVideoProcess();
-
             // Clean up to prevent memory leak
             return () => URL.revokeObjectURL(tmpURL);
         }
     }, [file]);
+
+    // Set default "auto generate" thumbnail right after video uploaded
+    useEffect(() => {
+        if (previewVid) {
+            getFrameFromVideo(previewVid, 1).then(setAutoGenThumb);
+        }
+    }, [previewVid]);
 
     // --- LOGIC HANDLE WHEN PRESS BUTTON ---
     const handleSubmit = async (e) => {
@@ -127,13 +149,19 @@ const UploadWizard = ({closeUploadPage}) => {
         // All requirement satisfied then
         // --- HANDLE UPLOAD PROCEDURE ---
         try{
-            // Update DB with status = "processing" + title + description + thumbnails
+            // Update DB with status = "processing" + title + description + thumbnail
             await whenSubmit(vidKey, {
                 title: title,
                 description: description,
                 status: VIDEO_STATUS.PROCESSING,
-                thumbnailUrl: thumbnailUrl,
+                
+                // ---- IN PROGRESS ----
+                // Handle user file & thumbnails ????
+
+                // Use ?. to avoid crashes when thumbnailUrl is null, undefined or ""
+                thumbnailUrl: thumbnailUrl?.image || uploadThumb?.image || autoGenThumb,
             });
+
             // Push lefting jobs for worker server to handle
 
             // Auto close form
@@ -205,30 +233,64 @@ const UploadWizard = ({closeUploadPage}) => {
             setDescription={setDescription}
             handleSubmit={handleSubmit}
             setPage={setPage}
+            thumbnailUrl={thumbnailUrl}
+            setThumbnailUrl={setThumbnailUrl}
+            autoGenThumb={autoGenThumb}
+            pickedThumb={pickedThumb}
+            setPickedThumb={setPickedThumb}
+            uploadThumb={uploadThumb}
+            setUploadThumb={setUploadThumb}
+            cleanUp={cleanUp}
         />
     );
 };
 
 // --- DETAIL STEP ---
-    const DetailStep = ({ file, previewVid, progress, title, setTitle, description, setDescription, handleSubmit, setPage }) => {
+    const DetailStep = ({ file, previewVid, progress, title, setTitle, description, setDescription, handleSubmit, 
+        setPage, thumbnailUrl, setThumbnailUrl, autoGenThumb, pickedThumb, setPickedThumb, uploadThumb, setUploadThumb, cleanUp }) => {
+        const [thumbPickerOpen, setThumbPickerOpen] = useState(false);
+        const [activeThumbOps, setActiveThumbOps] = useState(1);
+        const fileRef = useRef(null);
+
         const thumbnailExt = [
             {icon: ImagePlus, content: "Upload file"},
             {icon: Sparkles , content: "Auto generate"},
-            {icon: Pyramid  , content: "A/B testing"},
+            {icon: PenTool  , content: "Create, your way"},
         ];
+
+        // handle if user uploads file to make thumbnail
+        const handleFileIn = (e) => {
+            const file = e.target.files?.[0];
+            if(!file) return;
+            if (!file.type.startsWith("image/")) {
+                notifyError("Invalid type of picture");
+                return;
+            }
+            const fURL = URL.createObjectURL(file);
+            setUploadThumb({
+                file: file,
+                image: fURL,
+            })
+            setThumbnailUrl({
+                timestamp: null,
+                image: null,
+            })
+        }
 
         return (
         <form onSubmit={handleSubmit}> 
         {/* Customize warning message if errors happen */}
-        <Toaster
-            position="top-right"
-            reverseOrder={false}
-        />
+            <Toaster
+                position="top-right"
+                reverseOrder={false}
+            />
         <div className="container mt-5 pb-5">
             <div className="card bg-dark text-white shadow-lg border-0" style={{ borderRadius: '25px', maxWidth: '1100px'}}>
                 <div className="card-header d-flex justify-content-between align-items-center border-secondary py-3 bg-transparent">
                     <h5 className="mb-0 fw-bold text-truncate" style={{maxWidth: '70%'}}>File: {file?.name}</h5>
-                    <X className="text-secondary cursor-pointer" onClick={() => setPage(1)} size={20} />
+                    <X className="text-secondary cursor-pointer" 
+                        onClick={ cleanUp } 
+                        size={20} />
                 </div>
                 <div className="card-body p-4" style={{ 
                     maxHeight: '70vh',
@@ -261,19 +323,73 @@ const UploadWizard = ({closeUploadPage}) => {
                                         <span style={{color: '#007FFF'}}>&nbsp;Learn more</span>
                                     </p>
                                 </label>
+                                <input
+                                    ref={fileRef}
+                                    type="file"
+                                    accept="image/*"
+                                    className="d-none"
+                                    onChange={handleFileIn}
+                                />
 
                                 <div className='flex flex-row gap-2 cursor-pointer'>
                                     {thumbnailExt.map((e,idx) => {
                                         const {icon:Icon, content} = e;
                                         return (
-                                            <div key={idx} className="group flex flex-col align-items-center justify-content-center hover:bg-gray-500 transition duration-300" 
-                                                style={{width: '170px', height: '85px', border: '1px dashed #666'}}>
-                                                <Icon size={24} style={{margin: '15px 0 1px 0'}}/>
-                                                <p className="text-[#666666] text-sm group-hover:text-white">{content}</p>
+                                            <div key={idx} 
+                                                className={`${activeThumbOps === idx? "bg-gray-600 text-white" : "text-[#666666]"} 
+                                                group 
+                                                flex flex-col align-items-center justify-content-center 
+                                                hover:bg-gray-500 hover:text-white 
+                                                transition duration-300`}
+                                                style={{
+                                                    width: '170px', 
+                                                    height: '85px', 
+                                                    border: `dashed ${activeThumbOps === idx? '3px white' : '1px #666'}`,
+                                                    backgroundSize: 'cover',
+                                                    backgroundPosition: 'center',
+                                                    backgroundImage: 
+                                                        (idx === 0 && uploadThumb?.image)? `url(${uploadThumb.image})` :
+                                                        (idx === 1 && autoGenThumb)? `url(${autoGenThumb})` : 
+                                                        (idx === 2 && thumbnailUrl?.image)? `url(${thumbnailUrl.image})` : 
+                                                        "none",
+                                                    cursor: progress < 100 ? 'not-allowed' : 'pointer',
+                                                    opacity: progress < 100 ? 0.25 : 0.55,
+                                                }}
+                                                onClick={() => {
+                                                    if(progress < 100) return;
+                                                    setActiveThumbOps(idx);
+
+                                                    if(idx === 2){
+                                                        setUploadThumb(null); // Disable upload file card when choosing picked card
+                                                        setThumbPickerOpen(true);
+                                                    }
+                                                    else setThumbPickerOpen(false);
+
+                                                    if(!idx) fileRef.current?.click();
+                                                }}>
+                                                <Icon size={24} style={{color: (idx == 1)? 'oklch(70.5% 0.015 286.067)' : 'white', margin: '15px 0 1px 0'}}/>
+                                                <p className="text-sm group-hover:text-white">{content}</p>
                                             </div>
                                         )
                                     })}
                                 </div>
+                                { thumbPickerOpen && (<ThumbnailPicker 
+                                previewVid={previewVid} 
+                                setThumbnailUrl={(info) => {
+                                    setThumbnailUrl(info);
+                                    setPickedThumb(true);
+                                    setActiveThumbOps(2);
+                                }} 
+                                onClose={() => {
+                                    setThumbPickerOpen(false); 
+                                    setActiveThumbOps(2);
+                                }}
+                                // Reset to default: using auto-generated thumbnail
+                                handleReset={() => {
+                                    setThumbPickerOpen(false);
+                                    setActiveThumbOps(1);
+                                }}
+                                />)}
                             </div>
                         </div>
                         <div className="col-lg-4">
@@ -282,11 +398,11 @@ const UploadWizard = ({closeUploadPage}) => {
                                     {
                                         (previewVid && progress === 100)? (
                                            <video src={previewVid} autoPlay loop controls className="w-100 h-100 rounded-tl rounded-tr" style={{objectPosition:'contain'}}/>
-                                        ):(<span className="text-secondary small text-center px-2 italic mt-2">Video Preview</span>)
+                                        ):(<span className="text-secondary small text-center px-2 mt-2">Video Preview</span>)
                                     }
                                 </div>
                                 <div className="card-body p-3">
-                                    <div className="progress bg-secondary bg-opacity-25" style={{height: '7px'}}>
+                                    <div className="progress bg-secondary bg-opacity-25" style={{height: '5px'}}>
                                         <div className={`progress-bar ${progress < 100? "progress-bar-striped" : ""} progress-bar-animated`} style={{width: `${progress}%`}}></div>
                                     </div>
                                 </div>

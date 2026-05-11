@@ -1,6 +1,8 @@
 import express from 'express';
 
-import { generatePresignedURL, confirmUpload, initStatusDB, checkStatusUpload, updateSubmitDB } from '../controller/videoController.js';
+import { 
+    generatePresignedURL, confirmUpload, initStatusDB, checkStatusUpload, updateSubmitDB, callWorker
+ } from '../controller/videoController.js';
 
 // --- Note: Because vietnix key's format is "videos/{videoId}""
 // ---       so it need encrypting before requesting api (route confirmUpload)
@@ -13,6 +15,8 @@ router.post("/presigned-URL", generatePresignedURL);
 router.post("/:videoId/cnf", confirmUpload);
 
 router.post("/:videoId/initVidDB", initStatusDB);
+
+router.post("/:videoId/wrkJobs", callWorker);
 
 router.get("/:videoId/upStatus", checkStatusUpload);
 

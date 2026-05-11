@@ -18,11 +18,6 @@ const apiCnf = async(key) => {
     } 
 }
 
-// 6> Request worker server to generate thumbnails
-const genThumbnail = async() => {
-
-}
-
 export const uploadCnf = async(key) => {
     await apiCnf(key);
 }
