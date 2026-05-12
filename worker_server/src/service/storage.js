@@ -13,42 +13,49 @@ const getContentType = (filePath) => {
 };
 
 export const downloadObjectToFile = async(bucket, key, destinationPath) => {
-  const command = new GetObjectCommand({ Bucket: bucket, Key: key });
-  const response = await s3Client.send(command);
+    const cmd = new GetObjectCommand({
+      Bucket: bucket, 
+      Key: key,
+      ACL:'public-read', 
+    });
+    const res = await s3Client.send(cmd);
 
-  await fs.promises.mkdir(path.dirname(destinationPath), { recursive: true });
-  const body = response.Body;
-  if (!body) throw new Error(`S3 object body empty for key ${key}`);
+    await fs.promises.mkdir(path.dirname(destinationPath), { recursive: true });
+    const body = res.Body;
+    if(!body) throw new Error(`S3 object body empty for key ${key}`);
 
-  await pipeline(body, fs.createWriteStream(destinationPath));
-  return destinationPath;
+    await pipeline(body, fs.createWriteStream(destinationPath));
+    return destinationPath;
 };
 
 export const uploadFileToBucket = async(bucket, key, filePath) => {
-  const fileStream = fs.createReadStream(filePath);
-  const command = new PutObjectCommand({
+    const stat = await fsPromises.stat(filePath);
+    const fileStream = fs.createReadStream(filePath);
+    const cmd = new PutObjectCommand({
       Bucket: bucket,
       Key: key,
       Body: fileStream,
       ContentType: getContentType(filePath),
-    }
-  );
-  await s3Client.send(command);
-  return key;
-};
+      ContentLength: stat.size,
+      ACL: "public-read-write",
+    });
+    await s3Client.send(cmd);
+    return key;
+}
 
 export const uploadDirectoryToBucket = async( bucket, prefix, sourceDirectory, rootDirectory = sourceDirectory ) => {
-  const entries = await fsPromises.readdir(sourceDirectory, { withFileTypes: true });
-  // Todo jobs
-  const uploadTasks = [];
+    const entries = await fsPromises.readdir(sourceDirectory, { withFileTypes: true });
+    // Todo jobs
+    const uploadTasks = [];
 
-  for (const entry of entries) {
+    for(const entry of entries) {
     const fullPath = path.join(sourceDirectory, entry.name);
     
     if (entry.isDirectory()) {
       // If directory
       uploadTasks.push(uploadDirectoryToBucket(bucket, prefix, fullPath, rootDirectory));
-    } else {
+    } 
+    else {
       // If file
       const relativePath = path.relative(rootDirectory, fullPath).split(path.sep).join("/");
       const objectKey = `${prefix.replace(/\/+$/g, "")}/${relativePath}`;
@@ -56,6 +63,6 @@ export const uploadDirectoryToBucket = async( bucket, prefix, sourceDirectory, r
       uploadTasks.push(uploadFileToBucket(bucket, objectKey, fullPath));
     }
   }
-  // Run all in parallel
-  await Promise.all(uploadTasks);
+    // Run all in parallel
+    await Promise.all(uploadTasks);
 };

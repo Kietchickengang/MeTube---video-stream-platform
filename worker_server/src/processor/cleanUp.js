@@ -14,6 +14,6 @@ export const cleanUpTmp =  async(tempDir) => {
         })
     }
     catch(err){
-        console.warn(`[-] Worker cleanuo failed for ${tempDir}:`, err.message || err);
+        console.warn(`[-] Worker clean-up failed for ${tempDir}:`, err.message || err);
     }
 }

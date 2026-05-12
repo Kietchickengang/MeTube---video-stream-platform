@@ -1,5 +1,6 @@
 import { Worker } from "bullmq";
 import { redis_config } from "./redis.js";
+import { formatOut } from "../util/helper.js";
 
 const queueName = "video_processing";
 
@@ -14,15 +15,15 @@ export const createWorker = (processor) => {
   });
 
   worker.on("completed", (job) => {
-    console.log(`[Worker] completed job ${job.id} for ${job.name}`);
+    console.log(`[+] Worker completed job ${formatOut(job.id)} for ${formatOut(job.name)}`);
   });
 
   worker.on("failed", (job, err) => {
-    console.error(`[Worker] failed job ${job?.id} for ${job?.name}:`, err?.message || err);
+    console.error(`[-] Worker failed job ${formatOut(job?.id)} for ${formatOut(job?.name)}:`, err?.message || err);
   });
 
   worker.on("error", (err) => {
-    console.error("[Worker] queue error:", err);
+    console.error("[-] Worker queue error:", err);
   });
 
   return worker;

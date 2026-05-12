@@ -1,4 +1,7 @@
-import ffmpeg from "fluent-ffmpeg";
+import Ffmpeg from "fluent-ffmpeg";
+import ffmpegPath from "ffmpeg-static";
+
+Ffmpeg.setFfmpegPath(ffmpegPath);
 import path from "path";
 
 export const HLS = (inputFile, { hlsChunksDir, manifestDir}) => {
@@ -9,7 +12,7 @@ export const HLS = (inputFile, { hlsChunksDir, manifestDir}) => {
     const segmentVid = path.join(hlsChunksDir, "segment_%03d.ts");
 
     return new Promise((resolve, reject) => {
-        ffmpeg(inputFile).outputOptions(
+        Ffmpeg(inputFile).outputOptions(
             [
                 "-preset fast",                             // Balance transcode speed with file size
                 "-g 48", "-sc_threshold 0",                 // Configurate Group of Pictures

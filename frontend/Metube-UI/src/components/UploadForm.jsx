@@ -9,6 +9,8 @@ import { vnTimeString } from '../../../../api_server/src/util/helper.js';
 import { VIDEO_STATUS } from '../../../../api_server/src/util/constants.js';
 import { getFrameFromVideo } from '../helper/pickFrameVid.js';
 import { cleanUploadForm } from '../helper/resetUpload.js';
+import { validateThumbnailFile } from '../helper/checkInImg.js';
+import { uploadImgS3 } from '../service/uploadImg.js';
 
 import ThumbnailPicker from "./ThumbnailOptions.jsx";
 
@@ -24,8 +26,10 @@ import { uploadS3 } from '../service/uploadRaw.js';
 // S5 - Api server checks upload confirmation
 import { uploadCnf } from '../service/apiCnf.js';
 
-// S6 - Api server updates DB with status = "processing" + title + description + thumbnails when client presses button
-// S7 - Api server pushes work for worker server to handle
+// S6 - Upload user's uploaded file to Vietnix
+// S7 - Api server updates DB with status = "processing" + title + description; 
+//      send worker thumbnail info when client presses button
+// S8 - Api server pushes job for worker server to handle
 import { whenSubmit } from '../service/afterPress.js';
 
 const UploadWizard = ({closeUploadPage}) => {
@@ -38,9 +42,12 @@ const UploadWizard = ({closeUploadPage}) => {
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [thumbnailUrl, setThumbnailUrl] = useState("");
-    const [autoGenThumb, setAutoGenThumb] = useState(null);
+    const [autoGenThumbPrev, setAutoGenThumbPrev] = useState(null);
     const [pickedThumb, setPickedThumb] = useState(null);
     const [uploadThumb, setUploadThumb] = useState(null);
+    const [pressBtn, setPressBtn] = useState(false);
+    const [publishDone, setPublishDone] = useState(false);
+    const autoGenThumb = { timestamp: 1 };
 
     // Handle Click to choose file video
     const fileInputRef = useRef(null);
@@ -88,13 +95,15 @@ const UploadWizard = ({closeUploadPage}) => {
     };
 
     const cleanUp = () => {
-        closeUploadPage(
-            {setFile, setPreviewVid, setProgress, setVidKey, setTitle, setDescription, 
-             setThumbnailUrl, setAutoGenThumb, setPickedThumb, setUploadThumb})
+        closeUploadPage({
+            setFile, setPreviewVid, setProgress, setVidKey, setTitle, setDescription, 
+            setThumbnailUrl, setAutoGenThumbPrev, setPickedThumb, setUploadThumb})
         setPage(1);
     }
-
+    // ---------------------
     // --- VIDEO PREVIEW ---
+    // ---------------------
+
     // Create local URL when user selected file
     // Note: useEffect(() => {}, [e])
     // ----  Run if state/props change
@@ -131,14 +140,21 @@ const UploadWizard = ({closeUploadPage}) => {
     // Set default "auto generate" thumbnail right after video uploaded
     useEffect(() => {
         if (previewVid) {
-            getFrameFromVideo(previewVid, 1).then(setAutoGenThumb);
+            getFrameFromVideo(previewVid, 1).then(setAutoGenThumbPrev);
         }
     }, [previewVid]);
 
+    // --------------------------------------
     // --- LOGIC HANDLE WHEN PRESS BUTTON ---
+    // --------------------------------------
     const handleSubmit = async (e) => {
         // Avoid reload page
         e.preventDefault();
+
+        // Disable PUBLISH button to prevent spaming
+        if(pressBtn || publishDone) return;
+
+        let thumbPath = null;
 
         // Warning if have any empty input
         if(!title.trim() || !description.trim()){
@@ -149,25 +165,40 @@ const UploadWizard = ({closeUploadPage}) => {
         // All requirement satisfied then
         // --- HANDLE UPLOAD PROCEDURE ---
         try{
-            // Update DB with status = "processing" + title + description + thumbnail
+            // UI displays processing
+            setPressBtn(true);
+            // Upload user's uploaded file to Vietnix
+            if(uploadThumb?.file) { thumbPath = await uploadImgS3(uploadThumb.file, vidKey); }
+
+            // Update DB with status = "processing" + title + description
+            // Send metadata of thumbnail option for worker server to handle
+            // Push next jobs for worker server to handle
             await whenSubmit(vidKey, {
                 title: title,
                 description: description,
                 status: VIDEO_STATUS.PROCESSING,
                 
-                // ---- IN PROGRESS ----
-                // Handle user file & thumbnails ????
-
-                // Use ?. to avoid crashes when thumbnailUrl is null, undefined or ""
-                thumbnailUrl: thumbnailUrl?.image || uploadThumb?.image || autoGenThumb,
+                // If 2 field null or undefine --> AutoGenThumb
+                // If timestamp is not empty   --> PickedThumb
+                // If file is not empty        --> UploadThumb
+                thumbIn4: {
+                    timestamp: thumbnailUrl?.timestamp,
+                    file: thumbPath, // Path to vietnix storing user's uploaded file
+                }
             });
 
-            // Push lefting jobs for worker server to handle
-
-            // Auto close form
+            // When user click PUBLISH --> button loading in minutes --> change label "DONE"
+            setTimeout(() => {
+                setPublishDone(true);
+                setTimeout(() => {
+                    cleanUp(); // Auto close form
+                }, 1500);
+            }, 5000);
         }
         catch(err){
             console.error("Upload Error:", err);
+            notifyError(err.message);
+            setPressBtn(false);
         }
     };
 
@@ -235,19 +266,24 @@ const UploadWizard = ({closeUploadPage}) => {
             setPage={setPage}
             thumbnailUrl={thumbnailUrl}
             setThumbnailUrl={setThumbnailUrl}
-            autoGenThumb={autoGenThumb}
+            autoGenThumbPrev={autoGenThumbPrev}
             pickedThumb={pickedThumb}
             setPickedThumb={setPickedThumb}
             uploadThumb={uploadThumb}
             setUploadThumb={setUploadThumb}
+            pressBtn={pressBtn}
+            publishDone={publishDone}
             cleanUp={cleanUp}
         />
     );
 };
 
 // --- DETAIL STEP ---
-    const DetailStep = ({ file, previewVid, progress, title, setTitle, description, setDescription, handleSubmit, 
-        setPage, thumbnailUrl, setThumbnailUrl, autoGenThumb, pickedThumb, setPickedThumb, uploadThumb, setUploadThumb, cleanUp }) => {
+    const DetailStep = ({ 
+        file, previewVid, progress, title, setTitle, description, setDescription, handleSubmit, setPage, thumbnailUrl, 
+        setThumbnailUrl, autoGenThumbPrev, pickedThumb, setPickedThumb, uploadThumb, setUploadThumb, pressBtn, publishDone, 
+        cleanUp,
+    }) => {
         const [thumbPickerOpen, setThumbPickerOpen] = useState(false);
         const [activeThumbOps, setActiveThumbOps] = useState(1);
         const fileRef = useRef(null);
@@ -258,23 +294,26 @@ const UploadWizard = ({closeUploadPage}) => {
             {icon: PenTool  , content: "Create, your way"},
         ];
 
-        // handle if user uploads file to make thumbnail
-        const handleFileIn = (e) => {
+        // Handle if user uploads file to make thumbnail
+        const handleFileIn = async(e) => {
             const file = e.target.files?.[0];
-            if(!file) return;
-            if (!file.type.startsWith("image/")) {
-                notifyError("Invalid type of picture");
-                return;
+            try{
+                // Check file before continue processing 
+                await validateThumbnailFile(file);
+                const fURL = URL.createObjectURL(file);
+                setUploadThumb({
+                    file: file,
+                    image: fURL,
+                })
+                setThumbnailUrl({
+                    timestamp: null,
+                    image: null,
+                })
             }
-            const fURL = URL.createObjectURL(file);
-            setUploadThumb({
-                file: file,
-                image: fURL,
-            })
-            setThumbnailUrl({
-                timestamp: null,
-                image: null,
-            })
+            catch(err){
+                notifyError(err.message);
+                e.target.value = "";
+            }
         }
 
         return (
@@ -349,7 +388,7 @@ const UploadWizard = ({closeUploadPage}) => {
                                                     backgroundPosition: 'center',
                                                     backgroundImage: 
                                                         (idx === 0 && uploadThumb?.image)? `url(${uploadThumb.image})` :
-                                                        (idx === 1 && autoGenThumb)? `url(${autoGenThumb})` : 
+                                                        (idx === 1 && autoGenThumbPrev)? `url(${autoGenThumbPrev})` : 
                                                         (idx === 2 && thumbnailUrl?.image)? `url(${thumbnailUrl.image})` : 
                                                         "none",
                                                     cursor: progress < 100 ? 'not-allowed' : 'pointer',
@@ -415,7 +454,10 @@ const UploadWizard = ({closeUploadPage}) => {
                         (<p className="text-[#666666] text-sm flex flex-row gap-2 mt-3"><SearchCheck color='white'></SearchCheck>Inspection completed. No issues found.</p>):
                         (<p className="text-white text-sm flex flex-row gap-2 mt-3">Loading<LoaderCircle color='white' className='animate-spin'></LoaderCircle></p>)
                     }
-                        <button type="submit" disabled={progress < 100} className="btn btn-primary px-4 fw-bold">PUBLISH</button>
+                        <button type="submit" disabled={progress < 100 || publishDone || pressBtn} 
+                            className={`btn ${publishDone? "btn-danger" : pressBtn? "btn-secondary opacity-50" : "btn-primary"} px-4 fw-bold transition-all duration-300`}>
+                            {`${publishDone? "DONE" : pressBtn? "PROCESSING..." : "PUBLISH"}`}
+                        </button>       
                 </div>
             </div>
         </div>
