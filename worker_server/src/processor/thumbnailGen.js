@@ -1,11 +1,14 @@
-import ffmpeg from "fluent-ffmpeg";
+import Ffmpeg from "fluent-ffmpeg";
+import ffmpegPath from "ffmpeg-static";
+
+Ffmpeg.setFfmpegPath(ffmpegPath);
 import path from "path";
 import { setUpWrkEnv } from "../util/workspace.js";
 
 // If timeChose is undefined or empty --> Auto-generate mode by default
 export const generateThumbnail = (inputFile, thumbnailDir, timeChose) => {
     return new Promise((resolve, reject) => {
-        ffmpeg(inputFile)
+        Ffmpeg(inputFile)
             .screenshots({
                 // Default generate video thumbnail at first second 
                 timestamps: [timeChose || 1],

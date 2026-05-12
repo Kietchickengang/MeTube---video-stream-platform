@@ -7,7 +7,7 @@ const secret_key = import.meta.env.VITE_AES_SECRET_KEY;
 const host = `http://localhost:${api_port}/metube`;
 
 export const uploadS3 = async(file, progress) => {
-    if(!file) throw new Error('Empty video file'); 
+    if(!file) throw new Error('Empty file'); 
     try{
         const { name, type, size } = file;
 
@@ -19,17 +19,21 @@ export const uploadS3 = async(file, progress) => {
         });
 
         const { url, key, fields } = vietnixRep.data;
+        const encryptKey = encrypting(secret_key, key);
+
+        // Build form data
         const formData = new FormData();
         Object.entries(fields).forEach(([k, v]) => {
             formData.append(k, v);
         });
         formData.append("file", file);
-
-        const encryptKey = encrypting(secret_key, key);
         
-        // 2> Initialize status = "uploading" for file video
+        // 2> Initialize status = "uploading"  for file video
+        //    videoPath will be use in enqueue step
         try{
-            await axios.post(`${host}/${encryptKey}/initVidDB`)
+            await axios.post(`${host}/${encryptKey}/initVidDB`, {
+                videoPath: key,
+            })
         }
         catch(err)
         {

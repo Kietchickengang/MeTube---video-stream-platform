@@ -3,7 +3,8 @@ import axios from "axios"
 const api_port = import.meta.env.VITE_API_SERVER_PORT;
 const host = `http://localhost:${api_port}/metube`;
 
-// 6> Api server updates DB (status = "processing" + title + description + thumbnails)
+// 6> Upload image to S3 (UI)
+// 7> Api server updates DB (status = "processing" + title + description)
 const apiUpdateDB = async(key, metadata) => {
     try{
         await axios.patch(`${host}/${key}/goPublish`, metadata);
@@ -14,13 +15,15 @@ const apiUpdateDB = async(key, metadata) => {
     }
 }
 
-// 7> Api server calls worker server to handle next steps
-const callWorker = async(job) => {
+// 8> Api server calls worker server to handle next steps
+const callWorker = async(videoId, thumbIn4) => {
     // Push jobs to Message queue
     try{
-        const { videoId } = job;
-        const key = videoId;
-        await axios.post(`${host}/${key}/wrkJobs`);
+        const { timestamp, file } = thumbIn4;
+        await axios.post(`${host}/${videoId}/wrkJobs`, {
+            timestamp: timestamp,
+            file: file,
+        });
     }
     catch(err){
         console.error(`Failed to call worker server: ${err}`);
@@ -29,11 +32,13 @@ const callWorker = async(job) => {
 }
 
 export const whenSubmit = async(key, metadata) => {
-    const job = {
-        videoId: key,
-        // Link to folder/file Vietnix to download resources
-        videoPath: "",
-    }
-    await apiUpdateDB(key, metadata);
-    await callWorker(job);
+    const { title, description, status, thumbIn4 } = metadata;
+    
+    await apiUpdateDB(key, {
+        title: title,
+        description: description,
+        status: status,
+    });
+
+    await callWorker(key, thumbIn4);
 }
