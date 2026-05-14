@@ -11,6 +11,7 @@ import { validImgExtension, validImgMimeType, validImgSize } from "../middleware
 import { decrypting } from "../middleware/AES.js";
 
 const aes_secret = process.env.AES_SECRET_KEY;
+const role = "admin";
 
 // Return temporary presigned URL & key 
 export const getPresignedURL = async({
@@ -29,7 +30,7 @@ export const getPresignedURL = async({
 
     const tmp = `${vnTimeString()}_${fileName}`;
     const key = `${nameDir}/${tmp}`; // for raw uploaded video
-    const Tkey = `usr/${decrypting(aes_secret, folderName).substring("videos/".length)}/thumbnail`; // for user uploaded thumbnail
+    const Tkey = `${role}/${decrypting(aes_secret, folderName).substring("videos/".length)}/thumbnail`; // for user uploaded thumbnail
     const propSize = (nameDir === "videos")? 500 : 7;
 
     // Enforce Vietnix to auto reject video file that has unallowed MIME type & size > 500MB
@@ -43,7 +44,7 @@ export const getPresignedURL = async({
         ],
         Fields: {
             "Content-Type": contentType, 
-            acl: "public-read", // *** Required to have this line
+            acl: "public-read-write", // *** Required to have this line
         },
         Expires: expiresIn,
     });

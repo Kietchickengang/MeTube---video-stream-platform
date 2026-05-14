@@ -2,7 +2,10 @@ import cors from 'cors';
 
 const cors_config = {
     // Allowed front-end access
-    origin: 'http://localhost:5173',
+    origin: [
+        'http://localhost:5173',
+        'http://localhost:8001',
+    ],
     // Allowed methods
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD', 'PATCH'],
     // Allowed headers

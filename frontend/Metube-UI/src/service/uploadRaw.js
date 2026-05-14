@@ -33,6 +33,8 @@ export const uploadS3 = async(file, progress) => {
         try{
             await axios.post(`${host}/${encryptKey}/initVidDB`, {
                 videoPath: key,
+                videoSize: size,
+                mimeType: type,
             })
         }
         catch(err)
