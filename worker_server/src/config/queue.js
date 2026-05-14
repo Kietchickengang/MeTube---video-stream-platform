@@ -15,7 +15,7 @@ export const createWorker = (processor) => {
   });
 
   worker.on("completed", (job) => {
-    console.log(`[+] Worker completed job ${formatOut(job.id)} for ${formatOut(job.name)}`);
+    console.log(`[Worker] processing job: ${formatOut(job.id)} for ${formatOut(job.name)}`);
   });
 
   worker.on("failed", (job, err) => {

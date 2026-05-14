@@ -3,6 +3,7 @@ import { Info, X, Upload, CircleHelp, ImagePlus, Sparkles, PenTool, SearchCheck,
 
 import axios from 'axios';
 import { Toaster } from 'react-hot-toast';
+import { io } from "socket.io-client";
 
 import { notifyError, notifySuccess, notifyEmpty } from '../helper/popUp.js';
 import { vnTimeString } from '../../../../api_server/src/util/helper.js';
@@ -17,20 +18,25 @@ import ThumbnailPicker from "./ThumbnailOptions.jsx";
 // Security check
 import { validFileExtension, validFileSize, validMimeType } from '../helper/security.js';
 
-// S1 - Presigned URL
-// S2 - Initialize DB with videoId & status = "uploading"
-// S3 - Upload raw video to Vietnix
+// S1  - Presigned URL
+// S2  - Initialize DB with videoId & status = "uploading"
+// S3  - Upload raw video to Vietnix
 import { uploadS3 } from '../service/uploadRaw.js'; 
 
-// S4 - Upload done & confirm with api server
-// S5 - Api server checks upload confirmation
+// S4  - Upload done & confirm with api server
+// S5  - Api server checks upload confirmation
 import { uploadCnf } from '../service/apiCnf.js';
 
-// S6 - Upload user's uploaded file to Vietnix
-// S7 - Api server updates DB with status = "processing" + title + description; 
-//      send worker thumbnail info when client presses button
-// S8 - Api server pushes job for worker server to handle
+// S6  - Upload user's uploaded file to Vietnix
+// S7  - Api server updates DB with status = "processing" + title + description...; 
+//       send worker thumbnail info when client presses button
+// S8  - Api server pushes job for worker server to handle
+// S9  - Worker server done & sends a signal to Api server using Redis
+// S10 - Api server listens to signal & shoots Socket to UI to close form
 import { whenSubmit } from '../service/afterPress.js';
+
+const api_port = import.meta.env.VITE_API_SERVER_PORT;
+const host = `http://localhost:${api_port}`;
 
 const UploadWizard = ({closeUploadPage}) => {
     const [page, setPage] = useState(1); // Page 1: Upload, Page 2: Details
@@ -47,6 +53,8 @@ const UploadWizard = ({closeUploadPage}) => {
     const [uploadThumb, setUploadThumb] = useState(null);
     const [pressBtn, setPressBtn] = useState(false);
     const [publishDone, setPublishDone] = useState(false);
+    const [closeFormAuto, setCloseFormAuto] = useState(false);
+
     const autoGenThumb = { timestamp: 1 };
 
     // Handle Click to choose file video
@@ -145,8 +153,43 @@ const UploadWizard = ({closeUploadPage}) => {
     }, [previewVid]);
 
     // --------------------------------------
-    // --- LOGIC HANDLE WHEN PRESS BUTTON ---
+    // --- LOGIC HANDLE WHEN PRESS BUTTON --------
+    // --------------------------------------    |
+    //                                           |
+    // When user click PUBLISH                   |  
+    // --> button loading in minutes             | 
+    // --> change label "DONE"                   |
+    // --> auto close form in 2 seconds          |
+    //                                           |
+    // --------------------------------------    |
+    // --- LOGIC SOCKET TO ACCEPT SIGNAl <--------   
     // --------------------------------------
+
+    useEffect(() => {
+        if (!vidKey || !pressBtn) return;
+        const socket = io(host);
+        // Go to private room to communicate with Api server
+        socket.emit("join_video_room", vidKey);
+        console.log("Joined room:", vidKey);
+        // Listen signal from Api server to continue
+        socket.on("video_ready_UI", (signal) => {
+            if (signal.status === VIDEO_STATUS.READY) {
+                setPublishDone(true);
+                setPressBtn(false);
+
+                notifySuccess("Video uploaded successfully");
+                setTimeout(() => {
+                    cleanUp();  // Delay 1.5 seconds before closing form 
+                }, 1500);
+            }
+        });
+        return () => {
+            // Disconnect UI after finishing job
+            socket.off("video_ready_UI");
+            socket.disconnect();
+        };
+    }, [vidKey, pressBtn]);
+
     const handleSubmit = async (e) => {
         // Avoid reload page
         e.preventDefault();
@@ -177,23 +220,16 @@ const UploadWizard = ({closeUploadPage}) => {
                 title: title,
                 description: description,
                 status: VIDEO_STATUS.PROCESSING,
-                
                 // If 2 field null or undefine --> AutoGenThumb
                 // If timestamp is not empty   --> PickedThumb
                 // If file is not empty        --> UploadThumb
+
+                // Metadata for processing thumbnail
                 thumbIn4: {
                     timestamp: thumbnailUrl?.timestamp,
                     file: thumbPath, // Path to vietnix storing user's uploaded file
                 }
             });
-
-            // When user click PUBLISH --> button loading in minutes --> change label "DONE"
-            setTimeout(() => {
-                setPublishDone(true);
-                setTimeout(() => {
-                    cleanUp(); // Auto close form
-                }, 1500);
-            }, 5000);
         }
         catch(err){
             console.error("Upload Error:", err);
@@ -456,7 +492,11 @@ const UploadWizard = ({closeUploadPage}) => {
                     }
                         <button type="submit" disabled={progress < 100 || publishDone || pressBtn} 
                             className={`btn ${publishDone? "btn-danger" : pressBtn? "btn-secondary opacity-50" : "btn-primary"} px-4 fw-bold transition-all duration-300`}>
-                            {`${publishDone? "DONE" : pressBtn? "PROCESSING..." : "PUBLISH"}`}
+                            {publishDone? "DONE" : pressBtn? (
+                                <span className="d-flex align-items-center gap-2">
+                                    PROCESSING... <LoaderCircle size={18} className="animate-spin" />
+                                </span>)
+                                 : "PUBLISH"}
                         </button>       
                 </div>
             </div>

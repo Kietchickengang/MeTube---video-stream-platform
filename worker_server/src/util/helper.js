@@ -10,4 +10,5 @@ export const contentTypeMap = {
     ".txt": "text/plain",
 };
 
-export const formatOut = (info, num = 10) => info.length > num? info.substring(0, num) + "..." : info;
+// Only take maximum 21 characters of name to display
+export const formatOut = (info, num = 21) => info.length > num? info.substring(0, num) + "..." : info;

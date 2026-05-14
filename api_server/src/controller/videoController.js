@@ -112,12 +112,14 @@ export const updateSubmitDB = async(req, res) => {
 export const initStatusDB = async(req, res) => {
     try{
         const { videoId } = req.params;
-        const { videoPath} = req.body;
+        const { videoPath, videoSize, mimeType } = req.body;
 
         // Hash videoId from vietnix by default
         await create(standardInputDB({
             videoId: videoId,
             videoPath: videoPath,
+            videoSize: videoSize,
+            mimeType: mimeType,
         }));
         return res.status(200).json({
             message: "Initialized DB successfully",
