@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from "react";
-import { Pause, Play, Maximize2, Minimize, Monitor, Volume2, VolumeX, Settings, } from "lucide-react";
+import React, {useState, useRef, useEffect, useImperativeHandle, forwardRef,} from "react";
+import {Pause, Play, Maximize2, Minimize, Monitor, Volume2, VolumeX, Settings,} from "lucide-react";
 import Hls from "hls.js";
 
 import { formatTime } from "../utils/cal_in4.js";
@@ -7,11 +7,16 @@ import { controlBtnClass } from "../utils/constants.js";
 
 import "../../public/volume.css";
 
-const VideoPlayer = ({ videoPath, thumbnailUrl, isTheaterMode, toggleTheater }) => {
+const VideoPlayer = forwardRef(({videoPath, thumbnailUrl, isTheaterMode, toggleTheater,}, ref) => {
   const videoRef = useRef(null);
   const containerRef = useRef(null);
   const hlsRef = useRef(null);
   const hideTimerRef = useRef(null);
+
+  const savedStateRef = useRef({
+    time: 0,
+    playing: false,
+  });
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -22,6 +27,40 @@ const VideoPlayer = ({ videoPath, thumbnailUrl, isTheaterMode, toggleTheater }) 
   const [isBuffering, setIsBuffering] = useState(false);
   const [volume, setVolume] = useState(1);
   const [showVolumeSlider, setShowVolumeSlider] = useState(false);
+
+  useImperativeHandle(ref, () => ({
+    savePlaybackState() {
+      const v = videoRef.current;
+      if (!v) return;
+
+      savedStateRef.current = {
+        time: v.currentTime || 0,
+        playing: !v.paused && !v.ended,
+      };
+    },
+    restorePlaybackState() {
+      const v = videoRef.current;
+      if (!v) return;
+
+      const { time, playing } = savedStateRef.current;
+      const restore = () => {
+        try {
+          v.currentTime = time || 0;
+        } 
+        catch {}
+        if (playing) {
+          v.play().catch(() => {});
+        }
+      };
+
+      if (v.readyState >= 1) {
+        restore();
+      } 
+      else {
+        v.addEventListener("loadedmetadata", restore, { once: true });
+      }
+    },
+  }));
 
   const scheduleHideControls = () => {
     clearTimeout(hideTimerRef.current);
@@ -64,15 +103,9 @@ const VideoPlayer = ({ videoPath, thumbnailUrl, isTheaterMode, toggleTheater }) 
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
         video.play().catch(() => {});
       });
-
-      hls.on(Hls.Events.ERROR, (_, data) => {
-        console.error("HLS error:", data);
-      });
-    } else if (canUseNativeHls) {
+    } 
+    else if (canUseNativeHls) {
       video.src = videoPath;
-      video.addEventListener("loadedmetadata", () => {
-        video.play().catch(() => {});
-      });
     }
 
     const onPlay = () => {
@@ -113,9 +146,7 @@ const VideoPlayer = ({ videoPath, thumbnailUrl, isTheaterMode, toggleTheater }) 
   }, [videoPath]);
 
   useEffect(() => {
-    const onFsChange = () => {
-      setIsFullscreen(Boolean(document.fullscreenElement));
-    };
+    const onFsChange = () => setIsFullscreen(Boolean(document.fullscreenElement));
     document.addEventListener("fullscreenchange", onFsChange);
     return () => document.removeEventListener("fullscreenchange", onFsChange);
   }, []);
@@ -125,12 +156,8 @@ const VideoPlayer = ({ videoPath, thumbnailUrl, isTheaterMode, toggleTheater }) 
     if (!video) return;
 
     try {
-      if (video.paused) {
-        await video.play();
-      } 
-      else {
-        video.pause();
-      }
+      if (video.paused) await video.play();
+      else video.pause();
     } catch (error) {
       console.error("Playback error:", error);
     }
@@ -162,8 +189,7 @@ const VideoPlayer = ({ videoPath, thumbnailUrl, isTheaterMode, toggleTheater }) 
     if (value === 0) {
       video.muted = true;
       setIsMuted(true);
-    } 
-    else {
+    } else {
       video.muted = false;
       setIsMuted(false);
     }
@@ -199,9 +225,10 @@ const VideoPlayer = ({ videoPath, thumbnailUrl, isTheaterMode, toggleTheater }) 
       ref={containerRef}
       className={`relative overflow-hidden transition-all duration-300 ${
         isTheaterMode && !isFullscreen
-          ? 'w-full h-[68vh] rounded-none bg-[#111111]'
-          : 'w-full aspect-video rounded-2xl bg-black shadow-2xl'
+          ? "w-full h-[68vh] rounded-none bg-[#111111]"
+          : "w-full aspect-video rounded-2xl bg-black shadow-2xl"
       }`}
+      onClick={togglePlay}
       onMouseMove={handleActivity}
       onMouseEnter={handleActivity}
       onMouseLeave={() => {
@@ -213,8 +240,7 @@ const VideoPlayer = ({ videoPath, thumbnailUrl, isTheaterMode, toggleTheater }) 
       onTouchStart={handleActivity}
     >
       <div className="absolute inset-0 bg-[#0f0f0f]">
-        <img
-          src={thumbnailUrl} alt=""
+        <img src={thumbnailUrl} alt=""
           className="w-full h-full object-cover scale-125 opacity-10 saturate-50"
         />
         <div className="absolute inset-0 bg-[#0f0f0f]" />
@@ -224,7 +250,6 @@ const VideoPlayer = ({ videoPath, thumbnailUrl, isTheaterMode, toggleTheater }) 
         ref={videoRef}
         poster={thumbnailUrl}
         className="relative z-10 w-full h-full object-contain cursor-pointer"
-        onClick={togglePlay}
         playsInline
       />
 
@@ -234,61 +259,61 @@ const VideoPlayer = ({ videoPath, thumbnailUrl, isTheaterMode, toggleTheater }) 
         </div>
       )}
 
-      <div
-        className={`absolute inset-0 z-30 flex items-end bg-gradient-to-t from-black/10 via-black/10 to-transparent transition-opacity duration-300 ${
+      <div className={`absolute inset-0 z-30 flex items-end bg-gradient-to-t from-black/10 via-black/10 to-transparent transition-opacity duration-300 ${
           controlsVisible ? "opacity-100" : "opacity-0"
-        }`}
-      >
+        }`}>
         <div className="w-full px-4 pb-2">
-          <div className="w-full h-1 bg-white/20 rounded-full mb-2 cursor-pointer group" onClick={seekTo}>
+          <div className="w-full h-1 bg-white/20 rounded-full mb-2 cursor-pointer group"
+            onClick={seekTo}>
             <div className="h-full rounded-full bg-red-600 relative"
-              style={{ width: `${progress}%` }}
-            >
+              style={{ width: `${progress}%` }}>
               <div className="absolute right-0 top-1/2 -translate-y-1/2 h-3 w-3 rounded-full bg-red-600 opacity-0 group-hover:opacity-100 shadow-lg" />
             </div>
           </div>
 
           <div className="flex items-center justify-between text-white">
             <div className="flex items-center gap-3">
-              <button type="button" onClick={togglePlay} className={controlBtnClass}>
-                {isPlaying ? (<Pause size={22} fill="white" />) : (<Play size={22} fill="white"/>)}
+              <button type="button" onClick={(e) => {e.stopPropagation(); togglePlay();}} className={controlBtnClass}>
+                {isPlaying ? <Pause size={22} fill="white" /> : <Play size={22} fill="white" />}
               </button>
 
               <div className="flex items-center gap-2 group/volume"
                 onMouseEnter={() => setShowVolumeSlider(true)}
                 onMouseLeave={() => setShowVolumeSlider(false)}
               >
-                <button type="button" onClick={toggleMute} className={`${controlBtnClass} flex items-center justify-center`}>
-                  {isMuted || volume === 0 ? (
-                    <VolumeX size={21} />) : (<Volume2 size={21} />
-                  )}
+                <button type="button" onClick={(e) => {e.stopPropagation(); toggleMute();}} className={`${controlBtnClass} flex items-center justify-center`}>
+                  {isMuted || volume === 0 ? <VolumeX size={21} /> : <Volume2 size={21} />}
                 </button>
+
                 <div className={`overflow-hidden transition-all duration-200 ease-out ${showVolumeSlider ? "w-20 opacity-100" : "w-0 opacity-0"}`}>
                   <div className="h-9 flex items-center">
-                      <input type="range" min="0" max="1" step="0.01"
-                        value={isMuted ? 0 : volume}
-                        onChange={handleVolumeChange}
-                        className="youtube-volume-slider"
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.01"
+                      value={isMuted ? 0 : volume}
+                      onChange={handleVolumeChange}
+                      className="youtube-volume-slider"
                     />
                   </div>
                 </div>
               </div>
 
-              <span className={`text-white/95 hover:bg-white/10 active:bg-white/20 transition-all duration-150 ease-out px-2 py-1.5 rounded-pill`}>
+              <span className="text-white/95 hover:bg-white/10 active:bg-white/20 transition-all duration-150 ease-out px-2 py-1.5 rounded-pill">
                 {formatTime(currentTime)} / {formatTime(duration)}
               </span>
             </div>
 
             <div className="flex items-center gap-4">
-              <button type="button" onClick={toggleTheater} className={controlBtnClass}>
+              <button type="button" onClick={(e) => {e.stopPropagation(); toggleTheater();}} className={controlBtnClass}>
                 <Monitor size={20} />
               </button>
               <button type="button" className={controlBtnClass}>
                 <Settings size={20} />
               </button>
-
-              <button type="button" onClick={toggleFullScreen} className={controlBtnClass}>
-                {isFullscreen ? (<Minimize size={20} />) : (<Maximize2 size={20} />)}
+              <button type="button" onClick={(e) => {e.stopPropagation(); toggleFullScreen();}} className={controlBtnClass}>
+                {isFullscreen ? <Minimize size={20} /> : <Maximize2 size={20} />}
               </button>
             </div>
           </div>
@@ -296,6 +321,6 @@ const VideoPlayer = ({ videoPath, thumbnailUrl, isTheaterMode, toggleTheater }) 
       </div>
     </div>
   );
-};
+});
 
 export default VideoPlayer;
