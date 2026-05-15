@@ -3,7 +3,7 @@ import { Home, PlaySquare, Clock, ThumbsUp, History, Flame, ShoppingBag, Music2,
 
 // 1. Cập nhật SidebarItem với các class Dark Mode
 const SidebarItem = ({ icon: Icon, title, active = false }) => (
-  <div className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors 
+  <div className={`flex items-center gap-3 px-4 py-2 rounded-lg cursor-pointer transition-colors 
     ${active 
       ? "bg-[#272727] font-semibold !text-white" 
       : "!text-[#f1f1f1] hover:bg-[#272727]"}`}>

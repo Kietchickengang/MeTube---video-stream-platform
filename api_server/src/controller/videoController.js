@@ -12,7 +12,7 @@ const raw_video_bucket = process.env.BUCKET_RAW_VIDEO;
 const processed_video_bucket = process.env.BUCKET_PROCESSED_VIDEO;
 const secret_key = process.env.AES_SECRET_KEY; 
 
-const { updateStatus, updateByVideoId, findByVideoId, create } = VideoDB_operation;
+const { updateStatus, updateByVideoId, findByVideoId, create, findAll } = VideoDB_operation;
 
 export const generatePresignedURL = async(req, res) => {
     try{
@@ -186,5 +186,31 @@ export const callWorker = async(req, res) => {
             message: "Call worker service failed.Try again",
             error: err.message,
         })
+    }
+}
+
+export const getAllVideos = async(req, res) => {
+    try{
+        const allVideos = await VideoDB_operation.findAll();
+        res.status(200).json(allVideos);
+    }
+    catch(err){
+        console.error("Error in getting videos:", err);
+        res.status(500).json({ message: "Can not get videos list" });
+    }
+}
+
+export const getVideoById = async(req, res) => {
+    try{
+        const { videoId } = req.params;
+        const video = await findByVideoId(videoId);
+        if (!video) {
+            return res.status(404).json({ message: "Can not find video" });
+        }
+        res.status(200).json(video);
+    }   
+    catch(err){
+        console.error("Error in getting selected video:", err);
+        res.status(500).json({ message: "Can not get video" });
     }
 }

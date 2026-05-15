@@ -2,7 +2,7 @@ import express from 'express';
 
 import { 
     generatePresignedURL, confirmUpload, initStatusDB, checkStatusUpload, updateSubmitDB, 
-    callWorker, uploadThumbS3,
+    callWorker, uploadThumbS3, getAllVideos, getVideoById
  } from '../controller/videoController.js';
 
 // --- Note: Because vietnix key's format is "videos/{videoId}""
@@ -22,6 +22,10 @@ router.post("/:videoId/initVidDB", initStatusDB);
 router.post("/:videoId/wrkJobs", callWorker);
 
 router.get("/:videoId/upStatus", checkStatusUpload);
+
+router.get("/videos", getAllVideos);
+
+router.get("/videos/:videoId", getVideoById);
 
 router.patch("/:videoId/goPublish", updateSubmitDB);
 

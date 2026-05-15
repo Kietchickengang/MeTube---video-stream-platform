@@ -381,14 +381,14 @@ const UploadWizard = ({closeUploadPage}) => {
                                 <label className="form-label text-secondary small d-flex align-items-center gap-1">
                                     Title (required) <CircleHelp size={14} />
                                 </label>
-                                <textarea value={title} spellCheck="false" maxLength="100" className="form-control bg-transparent text-white border-0 p-0 shadow-none" rows="1" placeholder="Give your video a cool title..." style={{ resize: 'none' }} 
+                                <textarea value={title} spellCheck="false" maxLength="200" className="form-control bg-transparent text-white border-0 p-0 shadow-none" rows="1" placeholder="Give your video a cool title..." style={{ resize: 'none' }} 
                                     onChange={(e) => setTitle(e.target.value)}/>
                             </div>
                             <div className="mb-4 p-3 border border-secondary rounded bg-dark">
                                 <label className="form-label text-secondary small d-flex align-items-center gap-1">
                                     Description <CircleHelp size={14} />
                                 </label>
-                                <textarea value={description} spellCheck="false" maxLength="100" className="form-control bg-transparent text-white border-0 p-0 shadow-none" rows="4" placeholder="Tell viewers more..." style={{ resize: 'none' }}
+                                <textarea value={description} spellCheck="false" maxLength="1000" className="form-control bg-transparent text-white border-0 p-0 shadow-none" rows="4" placeholder="Tell viewers more..." style={{ resize: 'none' }}
                                     onChange={(e) => setDescription(e.target.value)}/>
                             </div>
                             <div>

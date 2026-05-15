@@ -1,110 +1,304 @@
-import { ThumbsUp, ThumbsDown, Redo2 } from 'lucide-react';
-import React from 'react';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+
+import {
+  ThumbsUp,
+  ThumbsDown,
+  Redo2,
+  Bookmark,
+  Ellipsis
+} from 'lucide-react';
+
+import { SiGooglegemini } from "react-icons/si";
+
 import VideoPlayer from '../components/VideoPlayer';
-import { fetchVideoById } from '../service/api';
+import VideoCard from "../components/VideoCard";
+
+import { timeAgo } from '../utils/cal_in4.js';
+
+const api_port = 8000;
+const hostPath = `http://localhost:${api_port}/metube/videos`;
+const prefix =
+  'https://s3.vn-hcm-1.vietnix.cloud/processed-video';
 
 const VideoPage = () => {
   const { id } = useParams();
+
   const [video, setVideo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const [activeIcon, setActiveIcon] = useState(null); // like || dislike || null
+  const [activeIcon, setActiveIcon] = useState(null);
+  const [isTheaterMode, setIsTheaterMode] = useState(false);
+  const [expandDesc, setExpandDesc] = useState(false);
+
+  const [recommendedVideos, setRecommendedVideos] = useState([]);
 
   useEffect(() => {
     const loadVideo = async () => {
       try {
-        const videoData = await fetchVideoById(id);
-        setVideo(videoData);
-      } catch (error) {
-        console.error('Error loading video:', error);
+        const response = await fetch(`${hostPath}/${id}`);
+
+        if (!response.ok) {
+          throw new Error('Video is not existed');
+        }
+
+        const data = await response.json();
+        setVideo(data);
+      }
+      catch (error) {
+        console.error(error);
         setError('Failed to load video');
-      } finally {
+      }
+      finally {
         setLoading(false);
       }
     };
 
+    const loadRecommended = async () => {
+      try {
+        const res = await fetch(hostPath);
+        const data = await res.json();
+
+        setRecommendedVideos(data);
+      }
+      catch (err) {
+        console.error(err);
+      }
+    };
+
     loadVideo();
+    loadRecommended();
   }, [id]);
 
   if (loading) {
-    return <div className="flex justify-center items-center h-64">Loading...</div>;
+    return (
+      <div className="flex justify-center items-center h-64">
+        Loading...
+      </div>
+    );
   }
 
   if (error || !video) {
-    return <div className="flex justify-center items-center h-64 text-red-500">{error || 'Video not found'}</div>;
+    return (
+      <div className="flex justify-center items-center h-64 text-lg text-red-500">
+        {error || 'Video not found'}
+      </div>
+    );
   }
 
   const iconProp = [
-      {keyId: "like", ico: ThumbsUp},
-      {keyId: "dislike", ico: ThumbsDown},
-  ]
+    { keyId: "like", ico: ThumbsUp },
+    { keyId: "dislike", ico: ThumbsDown },
+  ];
 
-  return (
-    <div className="max-w-7xl mx-auto">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Video Player */}
-        <div className="lg:col-span-2">
-          <VideoPlayer video={video} />
-          <div className="mt-3">
-            <h1 className="text-xl font-bold mb-2">{video.title}</h1>
-            <div className="flex items-center justify-start gap-3 mb-1">
-              <img src={video.channelAvatar} alt={video.channelName} className="w-10 h-10 rounded-full" />
+return (
+  <div className="w-full px-4 xl:px-6 mt-[56px]">
+
+    {/* ================= NORMAL MODE ================= */}
+    {!isTheaterMode ? (
+      <div className="flex gap-6 items-start">
+        {/* LEFT */}
+        <div className="flex-1 min-w-0 max-w-[1120px] ml-[25px]">
+          {/* VIDEO */}
+          <VideoPlayer
+            videoPath={`${prefix}/${video.hlsPath}`}
+            thumbnailUrl={`${prefix}/${video.thumbnailUrl}/thumbnail.jpg`}
+            isTheaterMode={isTheaterMode}
+            toggleTheater={() => setIsTheaterMode(!isTheaterMode)}
+          />
+          {/* INFO */}
+          <div className="mt-4">
+            <h1 className="text-xl font-bold mb-0">
+              {video.title}
+            </h1>
+            {/* ACTION BAR */}
+            <div className="flex items-center justify-start gap-3 mb-1 flex-wrap">
+              <img src={video.channelAvatar || "https://tinyurl.com/277pc7ru"}
+                alt={video.channelName || "K13T DU0N9"}
+                className="w-10 h-10 rounded-full"
+              />
               <div>
-                <p className="mt-3 font-semibold mb-0">{video.channelName}</p>
-                <p className="text-sm text-gray-400">Subscriber</p>
+                <p className="mt-2 font-semibold mb-0">
+                  {video.channelName || "K13T DU0N9"}
+                </p>
+                <p className="text-sm text-white">
+                  Subscriber
+                </p>
               </div>
-              <button className="font-semibold tracking-tight ml-7px bg-red-600 text-white px-3 py-2 rounded-full hover:bg-red-700 text-center">
+              <button className="font-semibold tracking-tight bg-red-600 text-white px-3 py-2 rounded-full hover:bg-red-700">
                 Subscribe
               </button>
-              <div className="flex items-center bg-[#222222] rounded-full overflow-hidden tracking-tight ml-7">
-                  {
-                    iconProp.map((btn,idx) => {
-                      const isActive = (activeIcon === btn.keyId);
-                      return (
-                        <React.Fragment key={btn.keyId}>
-                          <button className="flex flex-row gap-2 items-center justify-center font-semibold bg-[#222222] px-3 py-2 rounded-full cursor-pointer"
-                                  onClick={() => setActiveIcon(isActive? null : btn.keyId)}>
-                            <btn.ico
-                              fill={isActive? "white":"none"} 
-                              color={isActive? "#333333" : "white"}
-                              strokeWidth={isActive ? 1 : 2}
-                              className="transition-all duration-200 hover:opacity-50"
-                            />
-                            {idx === 0? video.liked : ""}        
-                          </button>
-                          {idx === 0 && <div className="w-[1px] h-6 bg-[#444444]"></div>}
-                        </React.Fragment>
-                      )
-                  })}
+              {/* LIKE DISLIKE */}
+              <div className="flex items-center bg-[#222222] rounded-full overflow-hidden tracking-tight ml-auto">
+                {iconProp.map((btn, idx) => {
+                  const isActive = activeIcon === btn.keyId;
+                  return (
+                    <React.Fragment key={btn.keyId}>
+                      <button className="flex flex-row gap-2 items-center justify-center font-semibold bg-[#222222] px-3 py-2 rounded-full cursor-pointer"
+                        onClick={() => setActiveIcon(isActive? null : btn.keyId)}>
+                        <btn.ico fill={isActive? "white" : "none"}
+                          color={isActive? "#333333" : "white"}
+                          strokeWidth={isActive ? 1 : 2}
+                          className="transition-all duration-200 hover:opacity-50"
+                        />
+                        {idx === 0? video.liked || 8386 : ""}
+                      </button>
+                      {idx === 0 && (<div className="w-[1px] h-6 bg-[#444444]" />)}
+                    </React.Fragment>
+                  );
+                })}
               </div>
-              <button className="flex flex-row gap-2 items-center justify-center font-semibold bg-[#222222] px-2.5 py-2 rounded-full cursor-pointer tracking-tight">
-                <Redo2/> Share
+              <button className="flex gap-2 items-center font-semibold bg-[#222222] px-2.5 py-2 rounded-full">
+                <Redo2 />
+                Share
+              </button>
+              <button className="flex gap-2 items-center font-semibold bg-[#222222] px-2.5 py-2 rounded-full">
+                <SiGooglegemini size={20} />
+                Ask question
+              </button>
+              <button className="flex gap-2 items-center font-semibold bg-[#222222] px-2.5 py-2 rounded-full">
+                <Bookmark />
+                Save
+              </button>
+
+              <button className="flex items-center justify-center bg-[#222222] rounded-full w-[40px] h-[40px]">
+                <Ellipsis />
               </button>
             </div>
-            <div className="bg-[#222222] p-2 rounded-xl">
-              <div className="flex items-center gap-4 text-sm text-white-700 mb-1 font-semibold ml-2">
-                <span>{video.views} views</span>
-                <span>{video.postedAt}</span>
+            {/* DESCRIPTION */}
+            <div className="bg-[#222222] p-3 rounded-xl">
+              <div className="flex items-center gap-4 text-sm font-semibold ml-1">
+                <span>{video.views || 8386} views</span>
+                <span>{timeAgo(video.createdAt)}</span>
               </div>
-              <p className='ml-2'>{video.description || 'No description available.'}</p>
+              <div
+                className={`mt-2 text-[14px] leading-6 text-[#f1f1f1] whitespace-pre-wrap text-left ${!expandDesc && "line-clamp-2"}`}>
+                {video.description || "No description available."}
+              </div>
+              <button onClick={() => setExpandDesc(!expandDesc)} className="mt-1 text-sm font-semibold hover:text-gray-300">
+                {expandDesc? "Show less" : "... More"}
+              </button>
             </div>
           </div>
         </div>
-
-        {/* Sidebar - Related videos or comments */}
-        <div className="lg:col-span-1">
-          <h3 className="text-lg font-semibold mb-4">Related Videos</h3>
-          {/* Placeholder for related videos */}
-          <div className="space-y-4">
-            {/* You can add related videos here */}
+        {/* SIDEBAR */}
+        <div className="w-[402px] shrink-0 pt-1">
+          <div className="flex flex-col gap-3">
+            {recommendedVideos.map((videoItem) => (
+              <VideoCard
+                key={videoItem.videoId}
+                video={videoItem}
+                isCurrent={ videoItem.videoId === id }
+              />
+            ))}
           </div>
         </div>
       </div>
-    </div>
-  );
-};
+    ) : (
+      /* ================= THEATER MODE ================= */
+      <div>
+        {/* VIDEO FULL WIDTH */}
+        <VideoPlayer
+          videoPath={`${prefix}/${video.hlsPath}`}
+          thumbnailUrl={`${prefix}/${video.thumbnailUrl}/thumbnail.jpg`}
+          isTheaterMode={isTheaterMode}
+          toggleTheater={() => setIsTheaterMode(!isTheaterMode)}
+        />
+        {/* BELOW VIDEO */}
+        <div className="flex gap-6 items-start mt-4">
+          {/* DESCRIPTION */}
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl font-bold mb-0">{video.title}</h1>
+            {/* ACTION BAR */}
+            <div className="flex items-center justify-start gap-3 mb-1 flex-wrap">
+              <img src={video.channelAvatar || "https://tinyurl.com/277pc7ru"}
+                alt={video.channelName || "K13T DU0N9"}
+                className="w-10 h-10 rounded-full"
+              />
+              <div>
+                <p className="mt-2 font-semibold mb-0">{video.channelName || "K13T DU0N9"}</p>
+                <p className="text-sm text-white">Subscriber</p>
+              </div>
+
+              <button className="font-semibold tracking-tight bg-red-600 text-white px-3 py-2 rounded-full hover:bg-red-700">Subscribe</button>
+              {/* LIKE DISLIKE */}
+              <div className="flex items-center bg-[#222222] rounded-full overflow-hidden tracking-tight ml-auto">
+                {iconProp.map((btn, idx) => {
+                  const isActive = activeIcon === btn.keyId;
+                  return (
+                    <React.Fragment key={btn.keyId}>
+                      <button className="flex flex-row gap-2 items-center justify-center font-semibold bg-[#222222] px-3 py-2 rounded-full cursor-pointer"
+                        onClick={() => setActiveIcon(isActive? null : btn.keyId)}>
+                        <btn.ico
+                          fill={isActive? "white" : "none"}
+                          color={isActive? "#333333" : "white"}
+                          strokeWidth={isActive ? 1 : 2}
+                          className="transition-all duration-200 hover:opacity-50"
+                        />
+                        {idx === 0? video.liked || 8386 : ""}
+                      </button>
+                      {idx === 0 && (<div className="w-[1px] h-6 bg-[#444444]" />)}
+                    </React.Fragment>
+                  );
+                })}
+              </div>
+
+              <button className="flex gap-2 items-center font-semibold bg-[#222222] px-2.5 py-2 rounded-full">
+                <Redo2 />Share
+              </button>
+
+              <button className="flex gap-2 items-center font-semibold bg-[#222222] px-2.5 py-2 rounded-full">
+                <SiGooglegemini size={20} />Ask question
+              </button>
+
+              <button className="flex gap-2 items-center font-semibold bg-[#222222] px-2.5 py-2 rounded-full">
+                <Bookmark />Save
+              </button>
+
+              <button className="flex items-center justify-center bg-[#222222] rounded-full w-[40px] h-[40px]">
+                <Ellipsis />
+              </button>
+            </div>
+
+            {/* DESCRIPTION */}
+            <div className="bg-[#222222] p-3 rounded-xl">
+              <div className="flex items-center gap-4 text-sm font-semibold ml-1">
+                <span>{video.views || 8386} views</span>
+                <span>{timeAgo(video.createdAt)}</span>
+              </div>
+              <div
+                className={`mt-2 text-[14px] leading-6 text-[#f1f1f1] whitespace-pre-wrap text-left ${!expandDesc && "line-clamp-2"}`}>{video.description || "No description available."}
+              </div>
+
+              <button
+                onClick={() => setExpandDesc(!expandDesc)}
+                className="mt-1 text-sm font-semibold hover:text-gray-300"
+              >
+                {expandDesc? "Show less" : "... More"}
+              </button>
+              </div>
+          </div>
+
+          {/* SIDEBAR */}
+          <div className="w-[450px] shrink-0">
+            <div className="flex flex-col gap-3">
+              {recommendedVideos.map((videoItem) => (
+                <VideoCard
+                  key={videoItem.videoId}
+                  video={videoItem}
+                  isCurrent={
+                    videoItem.videoId === id
+                  }
+                />
+              ))}
+
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+</div>
+)};
 
 export default VideoPage;
