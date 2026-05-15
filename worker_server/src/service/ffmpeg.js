@@ -66,8 +66,8 @@ const processVideoJob = async (job) => {
       
       // 3> Declare prefix in vietnix
       const manifestPrefix = `${role}/${fVidId}/manifest`;
-      const playlistKey = `${manifestPrefix}/index.m3u8`;
-      const thumbPrefix = `${role}/${fVidId}/thumbnail`;
+      const playlistKey = `${manifestPrefix}/master.m3u8`;
+      const thumbPrefix = `${role}/${fVidId}`;
 
       console.log("[3]---- START UPLOADING VIDEO TO VIETNIX ----");
 

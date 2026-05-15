@@ -35,6 +35,8 @@ export const VideoDB_operation = {
   },
 
   // FIND
+  async findAll() { return await videos.find({}).sort({ createdAt: -1 }).toArray(); },
+
   async findById(id) { return videos.findOne({ _id: new ObjectId(id) }); 
   },
 
