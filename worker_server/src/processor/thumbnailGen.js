@@ -7,16 +7,17 @@ import { setUpWrkEnv } from "../util/workspace.js";
 
 // If timeChose is undefined or empty --> Auto-generate mode by default
 export const generateThumbnail = (inputFile, thumbnailDir, timeChose) => {
+    const filename = "thumbnail.jpg";
     return new Promise((resolve, reject) => {
         Ffmpeg(inputFile)
             .screenshots({
                 // Default generate video thumbnail at first second 
                 timestamps: [timeChose || 1],
-                filename: 'thumbnail.jpg',
+                filename: filename,
                 folder: thumbnailDir,
                 size: '1280x720'
             })
-            .on('end', () => resolve(path.join(thumbnailDir, 'thumbnail.jpg')))
+            .on('end', () => resolve(path.join(thumbnailDir, filename)))
             .on('error', (err) => reject(err));
     });
 };

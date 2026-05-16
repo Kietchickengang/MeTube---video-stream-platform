@@ -144,7 +144,7 @@ export const uploadThumbS3 = async(req, res) => {
             bucket: processed_video_bucket,
             contentType: contentType,
             fileSize: fileSize,
-            nameDir: "thumbnail",
+            nameDir: "thumbnail.jpg",
         });
 
         return res.status(200).json({

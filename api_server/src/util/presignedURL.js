@@ -30,7 +30,7 @@ export const getPresignedURL = async({
 
     const tmp = `${vnTimeString()}_${fileName}`;
     const key = `${nameDir}/${tmp}`; // for raw uploaded video
-    const Tkey = `${role}/${decrypting(aes_secret, folderName).substring("videos/".length)}/thumbnail`; // for user uploaded thumbnail
+    const Tkey = `${role}/${decrypting(aes_secret, folderName).substring("videos/".length)}/thumbnail.jpg`; // for user uploaded thumbnail
     const propSize = (nameDir === "videos")? 500 : 7;
 
     // Enforce Vietnix to auto reject video file that has unallowed MIME type & size > 500MB

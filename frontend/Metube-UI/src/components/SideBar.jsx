@@ -1,39 +1,62 @@
 import React from 'react';
 import { Home, PlaySquare, Clock, ThumbsUp, History, Flame, ShoppingBag, Music2, Trophy, Settings, Flag, HelpCircle } from "lucide-react";
+import { SiYoutubeshorts } from "react-icons/si";
+import { FaBell } from "react-icons/fa";
+
+import { useNavigate, useLocation } from "react-router-dom";
 
 // 1. Cập nhật SidebarItem với các class Dark Mode
-const SidebarItem = ({ icon: Icon, title, active = false }) => (
-  <div className={`flex items-center gap-3 px-4 py-2 rounded-lg cursor-pointer transition-colors 
+const SidebarItem = ({ icon: Icon, title, active = false, needStyle = false, onClick, }) => (
+  <div onClick={onClick} className={`flex items-center gap-4 px-4 py-2 rounded-lg cursor-pointer transition-colors 
     ${active 
       ? "bg-[#272727] font-semibold !text-white" 
       : "!text-[#f1f1f1] hover:bg-[#272727]"}`}>
-    <Icon size={22} strokeWidth={active ? 2.2 : 1.5} className="flex-shrink-0"/>
+    {
+      <Icon size={22} strokeWidth={`${needStyle? "0" : "2.2"}`}/>
+    }
     <span className="text-[15px] tracking-tight text-inherit 
-                     hover:no-underline hover:!text-[#DC143C] hover:[text-shadow:_0.5px_0_0_currentColor] 
-                     transition-all duration-200
-                     whitespace-nowrap overflow-hidden text-ellipsis">{title} {/* Điều chỉnh để responsive khi inspect */}
+        hover:no-underline hover:!text-[#DC143C] hover:[text-shadow:_0.5px_0_0_currentColor] 
+        transition-all duration-200
+        whitespace-nowrap overflow-hidden text-ellipsis">{title} {/* Điều chỉnh để responsive khi inspect */}
     </span>
   </div>
 );
 
 const Sidebar = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   return (
     // 2. Thay đổi bg-white thành bg-[#0f0f0f]
-    <aside className="w-60 hidden md:flex flex-col h-[calc(100vh-56px)] sticky top-14 overflow-y-auto p-2 scrollbar-hide bg-[#0f0f0f]">
-      
+    <aside className="w-60 h-full overflow-y-auto p-2 bg-[#0f0f0f]">
       {/* Section 1: Main */}
       <div className="flex flex-col border-b border-[#3f3f3f] pb-3 mb-1.8">
-        <SidebarItem icon={Home} title="Trang chủ" active />
-        <SidebarItem icon={PlaySquare} title="Shorts" />
-        <SidebarItem icon={History} title="Kênh đăng ký" />
+        <SidebarItem icon={Home} title="Trang chủ" 
+          active={location.pathname === "/" }
+          onClick={() => navigate("/")}  
+        />
+        <SidebarItem icon={SiYoutubeshorts} title="Shorts" needStyle="true"
+          active={location.pathname === "/shorts"}
+          onClick={() => navigate("/shorts")}
+        />
+        <SidebarItem icon={FaBell} title="Kênh đăng ký" />
       </div>
 
       {/* Section 2: Personal */}
-      <div className="flex flex-col border-b border-[#3f3f3f] py-3 mb-1.8">
+      <div className="flex flex-col border-b border-[#3f3f3f] py-3 mb-1">
         <h3 className="px-4 py-2 font-bold text-base text-white">Bạn</h3>
-        <SidebarItem icon={History} title="Video đã xem" />
-        <SidebarItem icon={PlaySquare} title="Video của bạn" />
-        <SidebarItem icon={Clock} title="Xem sau" />
+        <SidebarItem icon={History} title="Video đã xem" 
+          active={location.pathname === "/history"}
+          onClick={() => navigate("/history")}
+        />
+        <SidebarItem icon={PlaySquare} title="Video của bạn" 
+          active={location.pathname === "/myVid"}
+          onClick={() => navigate("/myVid")}
+        />
+        <SidebarItem icon={Clock} title="Xem sau" 
+          active={location.pathname === "/laterVid"}
+          onClick={() => navigate("/laterVid")}
+        />
         <SidebarItem icon={ThumbsUp} title="Video đã thích" />
       </div>
 

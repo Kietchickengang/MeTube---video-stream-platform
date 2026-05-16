@@ -1,5 +1,7 @@
 import "dotenv/config";
 import { S3Client } from "@aws-sdk/client-s3";
+import { NodeHttpHandler } from "@smithy/node-http-handler"; 
+import https from "https";
 
 const vietnix_endpoint = process.env.ENDPOINT;
 const vietnix_access_key_id = process.env.ACCESS_KEY_ID;
@@ -15,4 +17,9 @@ export const s3Client = new S3Client({
   forcePathStyle: false,
   requestChecksumCalculation: "WHEN_REQUIRED",
   responseChecksumValidation: "WHEN_REQUIRED",
+  requestHandler: new NodeHttpHandler({ 
+    httpsAgent: new https.Agent(
+      { maxSockets: 200 }
+    ) 
+  })
 });

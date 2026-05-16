@@ -35,9 +35,9 @@ const Feed = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#0f0f0f] text-white mt-7 px-4 py-4">
+    <div className="min-h-screen bg-[#0f0f0f] text-white mt-0 px-4">
       {/* 1. Thanh Tabs Phân loại (Dark Style) */}
-      <div className="mb-6 flex gap-3 overflow-x-auto pb-2 no-scrollbar">
+      <div className="mb-3 flex gap-3 overflow-x-auto pb-2 no-scrollbar">
         {['Tất cả', 'Âm nhạc', 'Trò chơi', 'Trực tiếp', 'Học tập', 'Tin tức', 'Mới tải lên gần đây'].map((tab, index) => (
           <button 
             key={tab} 
@@ -76,14 +76,14 @@ const Feed = () => {
                 alt={video.channelName || "K13T DU0N9"} 
                 className="w-9 h-9 rounded-full object-cover flex-shrink-0" 
               />
-              <div className="flex flex-col">
-                <h3 className="text-[17px] font-semibold line-clamp-2 leading-snug text-[#f1f1f1] tracking-tight">
+              <div className="flex flex-col tracking-tight">
+                <h3 className="text-lg font-semibold line-clamp-2 leading-snug text-[#f1f1f1] tracking-tight">
                   {video.title}
                 </h3>
-                <div className="mt-1 text-[15px] text-[#aaaaaa] leading-none flex items-center flex-wrap gap-x-2">
+                <div className="mt-1 text-sm text-[#aaaaaa] leading-none flex items-center flex-wrap gap-x-2">
                   <p className="hover:text-white transition">{video.channelName || "K13T DU0N9"}</p>
                   <p className="flex items-center flex-wrap gap-x-1">
-                    <Play size={15}></Play>{video.views || 8386}&nbsp;&nbsp;{timeAgo(video.createdAt)}
+                    <Play size={15}></Play>{video.views || "8.3 N"}&nbsp;&nbsp;&nbsp;{timeAgo(video.createdAt)}
                   </p>
                 </div>
               </div>

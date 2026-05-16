@@ -4,6 +4,7 @@ import "dotenv/config";
 import { createWorker } from "../config/queue.js";
 import { downloadObjectToFile, uploadDirectoryToBucket } from "./storage.js";
 import { VideoDB_operation } from "./db.js";
+import { uploadDirToBucket } from "./uploadNew.js";
 
 import { VIDEO_STATUS } from "../../../api_server/src/util/constants.js";
 
@@ -16,7 +17,7 @@ import { onJobComplete } from "./sendSign.js";
 
 import { cleanUpTmp } from "../processor/cleanUp.js"
 import { decrypting } from "../../../api_server/src/middleware/AES.js";
-import { formatOut } from "../util/helper.js";
+import { formatOut, getNowTime } from "../util/helper.js";
 
 const rawBucket = process.env.BUCKET_RAW_VIDEO;
 const processedBucket = process.env.BUCKET_PROCESSED_VIDEO;
@@ -50,7 +51,7 @@ const processVideoJob = async (job) => {
       console.log("[2]---- START HLS & GEN THUMBNAIL ----");
 
       // 2> Transcode & generate thumbnail running in parallel
-      const [hlsResult, _] = await Promise.all([
+      const [hlsResult, thumbnail] = await Promise.all([
           HLS(rawFile, { manifestDir }),
           timestamp? generateThumbnail(rawFile, thumbnailDir, timestamp) : 
           !file?     generateThumbnail(rawFile, thumbnailDir, 1) : Promise.resolve(""),
@@ -73,8 +74,8 @@ const processVideoJob = async (job) => {
 
       // 4> Upload processed video to vietnix
       await Promise.all([
-          uploadDirectoryToBucket(processedBucket, manifestPrefix, manifestDir),
-          uploadDirectoryToBucket(processedBucket, thumbPrefix, thumbnailDir)
+          uploadDirToBucket(processedBucket, manifestPrefix, manifestDir),
+          uploadDirToBucket(processedBucket, thumbPrefix, thumbnailDir)
       ]);
 
       console.log("[+]---- FINISH ----");
@@ -84,9 +85,10 @@ const processVideoJob = async (job) => {
       await updateByVideoId(videoId, { 
           status: VIDEO_STATUS.READY, 
           hlsPath: playlistKey, 
-          thumbnailUrl: thumbPrefix,
+          thumbnailUrl: `${thumbPrefix}`,
           resolution: resolutions,
           duration: duration,
+          createdAt: getNowTime(),
       });
 
       console.log("[5]---- START SENDING SIGNAL----");
