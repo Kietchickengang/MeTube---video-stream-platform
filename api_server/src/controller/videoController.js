@@ -9,9 +9,10 @@ import { decrypting } from "../middleware/AES.js";
 import { addJobToQueue } from "../service/queue.js";
 
 const raw_video_bucket = process.env.BUCKET_RAW_VIDEO;
+const processed_video_bucket = process.env.BUCKET_PROCESSED_VIDEO;
 const secret_key = process.env.AES_SECRET_KEY; 
 
-const { updateStatus, updateByVideoId, findByVideoId, create } = VideoDB_operation;
+const { updateStatus, updateByVideoId, findByVideoId, create, findAll } = VideoDB_operation;
 
 export const generatePresignedURL = async(req, res) => {
     try{
@@ -111,9 +112,14 @@ export const updateSubmitDB = async(req, res) => {
 export const initStatusDB = async(req, res) => {
     try{
         const { videoId } = req.params;
+        const { videoPath, videoSize, mimeType } = req.body;
+
         // Hash videoId from vietnix by default
         await create(standardInputDB({
             videoId: videoId,
+            videoPath: videoPath,
+            videoSize: videoSize,
+            mimeType: mimeType,
         }));
         return res.status(200).json({
             message: "Initialized DB successfully",
@@ -129,16 +135,46 @@ export const initStatusDB = async(req, res) => {
     }
 }
 
+export const uploadThumbS3 = async(req, res) => {
+    try{
+        const { fileName, contentType, fileSize, folderName } = req.body;
+        const { url, fields, videoId } = await getPresignedURL({
+            fileName: fileName, 
+            folderName: folderName,
+            bucket: processed_video_bucket,
+            contentType: contentType,
+            fileSize: fileSize,
+            nameDir: "thumbnail",
+        });
+
+        return res.status(200).json({
+            url: url,
+            key: videoId,
+            fields: fields,
+        })
+    }
+    catch(err){
+        console.log(`Can not upload user file to S3: ${err.message}`);
+        res.status(500).json({
+            message: " Failed to upload user file to vietnix",
+            error: err.message,
+        })
+    }
+}
+
 export const callWorker = async(req, res) => {
     try{
         const { videoId } = req.params;
-        const { videoPath } = req.body;
-
+        const { timestamp, file } = req.body;
+        // Look up video in DB
+        const video = await findByVideoId(videoId);
+        // Enqueue job for worker to handle
         await addJobToQueue({
-            videoId: videoId,
-            videoPath: videoPath
+            videoId,
+            videoPath: video.videoPath,
+            timestamp: timestamp,
+            file: file,
         })
-
         return res.status(200).json({
             message: "Pushed job successfully",
             time: vnTimeString(),
@@ -150,5 +186,31 @@ export const callWorker = async(req, res) => {
             message: "Call worker service failed.Try again",
             error: err.message,
         })
+    }
+}
+
+export const getAllVideos = async(req, res) => {
+    try{
+        const allVideos = await VideoDB_operation.findAll();
+        res.status(200).json(allVideos);
+    }
+    catch(err){
+        console.error("Error in getting videos:", err);
+        res.status(500).json({ message: "Can not get videos list" });
+    }
+}
+
+export const getVideoById = async(req, res) => {
+    try{
+        const { videoId } = req.params;
+        const video = await findByVideoId(videoId);
+        if (!video) {
+            return res.status(404).json({ message: "Can not find video" });
+        }
+        res.status(200).json(video);
+    }   
+    catch(err){
+        console.error("Error in getting selected video:", err);
+        res.status(500).json({ message: "Can not get video" });
     }
 }

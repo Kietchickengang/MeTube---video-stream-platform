@@ -5,18 +5,22 @@ import path from 'path';
 import fs from "fs/promises";
 import os from "os";
 
+// === FILE STRUCTURE ===
 // --- /tmp/metube-videoId-X/
 // --- ├── raw.mp4
 // --- └── output/
-// ---     ├── transcode/
-// ---     │   ├── 360p.mp4
-// ---     │   └── ...
 // ---     ├── thumbnail/
-// ---     ├── HLS_chunks/
-// ---     │   ├── segment_000.ts
-// ---     │   └── ...
+// ---     │   └── thumbnail.jpg
+// ---     │
 // ---     └── manifest/
-// ---         └── index.m3u8
+// ---         ├─ master.m3u8
+// ---         ├─ 360p/
+// ---         │   ├─ index.m3u8   
+// ---         │   ├─ segment_000.ts
+// ---         │   └─ ...  
+// ---         ├─ 480p/
+// ---         ├─ ├─ ...
+// ---         ...
 
 export const setUpWrkEnv = async(input) => {
     const { videoId, videoPath } = input;
@@ -32,18 +36,13 @@ export const setUpWrkEnv = async(input) => {
     const rawFile = path.join(tempDir, `raw${fileExt}`);
 
     // 4> Create path to output directory inside tempDir
-    //    to save file transcoded, thumbnail, HLS chunks, manifest
+    //    to save folder thumbnail and manifest
     const outputDir = path.join(tempDir, "output");
 
-    // 5> Create output directory
-    //    auto-create parent directories if missing
-    await fs.mkdir(outputDir, { recursive: true });
-
-    // 6> Create subDirectories
+    // 5> Create output directory auto-create parent directories if missing
+    //    Create subDirectories
     const subDirs = {
-        transcodeDir : path.join(outputDir, "transcode"),
         thumbnailDir : path.join(outputDir, "thumbnail"),
-        hlsChunksDir : path.join(outputDir, "HLS_chunks"),
         manifestDir  : path.join(outputDir, "manifest"),
     };
 

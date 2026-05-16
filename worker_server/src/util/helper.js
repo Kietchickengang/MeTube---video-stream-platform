@@ -5,12 +5,10 @@ export const contentTypeMap = {
     ".jpg": "image/jpeg",
     ".jpeg": "image/jpeg",
     ".png": "image/png",
+    ".webp": "image/webp",
     ".json": "application/json",
     ".txt": "text/plain",
 };
 
-export const formatOut = (info) => info.length > 10? info.substring(0, 10) + "..." : info;
-
-export const transFE_thumbChose = () => {
-
-}
+// Only take maximum 21 characters of name to display
+export const formatOut = (info, num = 21) => info.length > num? info.substring(0, num) + "..." : info;

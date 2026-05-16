@@ -3,30 +3,40 @@ import { Info, X, Upload, CircleHelp, ImagePlus, Sparkles, PenTool, SearchCheck,
 
 import axios from 'axios';
 import { Toaster } from 'react-hot-toast';
+import { io } from "socket.io-client";
 
 import { notifyError, notifySuccess, notifyEmpty } from '../helper/popUp.js';
 import { vnTimeString } from '../../../../api_server/src/util/helper.js';
 import { VIDEO_STATUS } from '../../../../api_server/src/util/constants.js';
 import { getFrameFromVideo } from '../helper/pickFrameVid.js';
 import { cleanUploadForm } from '../helper/resetUpload.js';
+import { validateThumbnailFile } from '../helper/checkInImg.js';
+import { uploadImgS3 } from '../service/uploadImg.js';
 
 import ThumbnailPicker from "./ThumbnailOptions.jsx";
 
 // Security check
 import { validFileExtension, validFileSize, validMimeType } from '../helper/security.js';
 
-// S1 - Presigned URL
-// S2 - Initialize DB with videoId & status = "uploading"
-// S3 - Upload raw video to Vietnix
+// S1  - Presigned URL
+// S2  - Initialize DB with videoId & status = "uploading"
+// S3  - Upload raw video to Vietnix
 import { uploadS3 } from '../service/uploadRaw.js'; 
 
-// S4 - Upload done & confirm with api server
-// S5 - Api server checks upload confirmation
+// S4  - Upload done & confirm with api server
+// S5  - Api server checks upload confirmation
 import { uploadCnf } from '../service/apiCnf.js';
 
-// S6 - Api server updates DB with status = "processing" + title + description + thumbnails when client presses button
-// S7 - Api server pushes work for worker server to handle
+// S6  - Upload user's uploaded file to Vietnix
+// S7  - Api server updates DB with status = "processing" + title + description...; 
+//       send worker thumbnail info when client presses button
+// S8  - Api server pushes job for worker server to handle
+// S9  - Worker server done & sends a signal to Api server using Redis
+// S10 - Api server listens to signal & shoots Socket to UI to close form
 import { whenSubmit } from '../service/afterPress.js';
+
+const api_port = import.meta.env.VITE_API_SERVER_PORT;
+const host = `http://localhost:${api_port}`;
 
 const UploadWizard = ({closeUploadPage}) => {
     const [page, setPage] = useState(1); // Page 1: Upload, Page 2: Details
@@ -38,9 +48,14 @@ const UploadWizard = ({closeUploadPage}) => {
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [thumbnailUrl, setThumbnailUrl] = useState("");
-    const [autoGenThumb, setAutoGenThumb] = useState(null);
+    const [autoGenThumbPrev, setAutoGenThumbPrev] = useState(null);
     const [pickedThumb, setPickedThumb] = useState(null);
     const [uploadThumb, setUploadThumb] = useState(null);
+    const [pressBtn, setPressBtn] = useState(false);
+    const [publishDone, setPublishDone] = useState(false);
+    const [closeFormAuto, setCloseFormAuto] = useState(false);
+
+    const autoGenThumb = { timestamp: 1 };
 
     // Handle Click to choose file video
     const fileInputRef = useRef(null);
@@ -88,13 +103,15 @@ const UploadWizard = ({closeUploadPage}) => {
     };
 
     const cleanUp = () => {
-        closeUploadPage(
-            {setFile, setPreviewVid, setProgress, setVidKey, setTitle, setDescription, 
-             setThumbnailUrl, setAutoGenThumb, setPickedThumb, setUploadThumb})
+        closeUploadPage({
+            setFile, setPreviewVid, setProgress, setVidKey, setTitle, setDescription, 
+            setThumbnailUrl, setAutoGenThumbPrev, setPickedThumb, setUploadThumb})
         setPage(1);
     }
-
+    // ---------------------
     // --- VIDEO PREVIEW ---
+    // ---------------------
+
     // Create local URL when user selected file
     // Note: useEffect(() => {}, [e])
     // ----  Run if state/props change
@@ -131,14 +148,56 @@ const UploadWizard = ({closeUploadPage}) => {
     // Set default "auto generate" thumbnail right after video uploaded
     useEffect(() => {
         if (previewVid) {
-            getFrameFromVideo(previewVid, 1).then(setAutoGenThumb);
+            getFrameFromVideo(previewVid, 1).then(setAutoGenThumbPrev);
         }
     }, [previewVid]);
 
-    // --- LOGIC HANDLE WHEN PRESS BUTTON ---
+    // --------------------------------------
+    // --- LOGIC HANDLE WHEN PRESS BUTTON --------
+    // --------------------------------------    |
+    //                                           |
+    // When user click PUBLISH                   |  
+    // --> button loading in minutes             | 
+    // --> change label "DONE"                   |
+    // --> auto close form in 2 seconds          |
+    //                                           |
+    // --------------------------------------    |
+    // --- LOGIC SOCKET TO ACCEPT SIGNAl <--------   
+    // --------------------------------------
+
+    useEffect(() => {
+        if (!vidKey || !pressBtn) return;
+        const socket = io(host);
+        // Go to private room to communicate with Api server
+        socket.emit("join_video_room", vidKey);
+        console.log("Joined room:", vidKey);
+        // Listen signal from Api server to continue
+        socket.on("video_ready_UI", (signal) => {
+            if (signal.status === VIDEO_STATUS.READY) {
+                setPublishDone(true);
+                setPressBtn(false);
+
+                notifySuccess("Video uploaded successfully");
+                setTimeout(() => {
+                    cleanUp();  // Delay 1.5 seconds before closing form 
+                }, 1500);
+            }
+        });
+        return () => {
+            // Disconnect UI after finishing job
+            socket.off("video_ready_UI");
+            socket.disconnect();
+        };
+    }, [vidKey, pressBtn]);
+
     const handleSubmit = async (e) => {
         // Avoid reload page
         e.preventDefault();
+
+        // Disable PUBLISH button to prevent spaming
+        if(pressBtn || publishDone) return;
+
+        let thumbPath = null;
 
         // Warning if have any empty input
         if(!title.trim() || !description.trim()){
@@ -149,25 +208,33 @@ const UploadWizard = ({closeUploadPage}) => {
         // All requirement satisfied then
         // --- HANDLE UPLOAD PROCEDURE ---
         try{
-            // Update DB with status = "processing" + title + description + thumbnail
+            // UI displays processing
+            setPressBtn(true);
+            // Upload user's uploaded file to Vietnix
+            if(uploadThumb?.file) { thumbPath = await uploadImgS3(uploadThumb.file, vidKey); }
+
+            // Update DB with status = "processing" + title + description
+            // Send metadata of thumbnail option for worker server to handle
+            // Push next jobs for worker server to handle
             await whenSubmit(vidKey, {
                 title: title,
                 description: description,
                 status: VIDEO_STATUS.PROCESSING,
-                
-                // ---- IN PROGRESS ----
-                // Handle user file & thumbnails ????
+                // If 2 field null or undefine --> AutoGenThumb
+                // If timestamp is not empty   --> PickedThumb
+                // If file is not empty        --> UploadThumb
 
-                // Use ?. to avoid crashes when thumbnailUrl is null, undefined or ""
-                thumbnailUrl: thumbnailUrl?.image || uploadThumb?.image || autoGenThumb,
+                // Metadata for processing thumbnail
+                thumbIn4: {
+                    timestamp: thumbnailUrl?.timestamp,
+                    file: thumbPath, // Path to vietnix storing user's uploaded file
+                }
             });
-
-            // Push lefting jobs for worker server to handle
-
-            // Auto close form
         }
         catch(err){
             console.error("Upload Error:", err);
+            notifyError(err.message);
+            setPressBtn(false);
         }
     };
 
@@ -235,19 +302,24 @@ const UploadWizard = ({closeUploadPage}) => {
             setPage={setPage}
             thumbnailUrl={thumbnailUrl}
             setThumbnailUrl={setThumbnailUrl}
-            autoGenThumb={autoGenThumb}
+            autoGenThumbPrev={autoGenThumbPrev}
             pickedThumb={pickedThumb}
             setPickedThumb={setPickedThumb}
             uploadThumb={uploadThumb}
             setUploadThumb={setUploadThumb}
+            pressBtn={pressBtn}
+            publishDone={publishDone}
             cleanUp={cleanUp}
         />
     );
 };
 
 // --- DETAIL STEP ---
-    const DetailStep = ({ file, previewVid, progress, title, setTitle, description, setDescription, handleSubmit, 
-        setPage, thumbnailUrl, setThumbnailUrl, autoGenThumb, pickedThumb, setPickedThumb, uploadThumb, setUploadThumb, cleanUp }) => {
+    const DetailStep = ({ 
+        file, previewVid, progress, title, setTitle, description, setDescription, handleSubmit, setPage, thumbnailUrl, 
+        setThumbnailUrl, autoGenThumbPrev, pickedThumb, setPickedThumb, uploadThumb, setUploadThumb, pressBtn, publishDone, 
+        cleanUp,
+    }) => {
         const [thumbPickerOpen, setThumbPickerOpen] = useState(false);
         const [activeThumbOps, setActiveThumbOps] = useState(1);
         const fileRef = useRef(null);
@@ -258,23 +330,26 @@ const UploadWizard = ({closeUploadPage}) => {
             {icon: PenTool  , content: "Create, your way"},
         ];
 
-        // handle if user uploads file to make thumbnail
-        const handleFileIn = (e) => {
+        // Handle if user uploads file to make thumbnail
+        const handleFileIn = async(e) => {
             const file = e.target.files?.[0];
-            if(!file) return;
-            if (!file.type.startsWith("image/")) {
-                notifyError("Invalid type of picture");
-                return;
+            try{
+                // Check file before continue processing 
+                await validateThumbnailFile(file);
+                const fURL = URL.createObjectURL(file);
+                setUploadThumb({
+                    file: file,
+                    image: fURL,
+                })
+                setThumbnailUrl({
+                    timestamp: null,
+                    image: null,
+                })
             }
-            const fURL = URL.createObjectURL(file);
-            setUploadThumb({
-                file: file,
-                image: fURL,
-            })
-            setThumbnailUrl({
-                timestamp: null,
-                image: null,
-            })
+            catch(err){
+                notifyError(err.message);
+                e.target.value = "";
+            }
         }
 
         return (
@@ -306,14 +381,14 @@ const UploadWizard = ({closeUploadPage}) => {
                                 <label className="form-label text-secondary small d-flex align-items-center gap-1">
                                     Title (required) <CircleHelp size={14} />
                                 </label>
-                                <textarea value={title} spellCheck="false" maxLength="100" className="form-control bg-transparent text-white border-0 p-0 shadow-none" rows="1" placeholder="Give your video a cool title..." style={{ resize: 'none' }} 
+                                <textarea value={title} spellCheck="false" maxLength="200" className="form-control bg-transparent text-white border-0 p-0 shadow-none" rows="1" placeholder="Give your video a cool title..." style={{ resize: 'none' }} 
                                     onChange={(e) => setTitle(e.target.value)}/>
                             </div>
                             <div className="mb-4 p-3 border border-secondary rounded bg-dark">
                                 <label className="form-label text-secondary small d-flex align-items-center gap-1">
                                     Description <CircleHelp size={14} />
                                 </label>
-                                <textarea value={description} spellCheck="false" maxLength="100" className="form-control bg-transparent text-white border-0 p-0 shadow-none" rows="4" placeholder="Tell viewers more..." style={{ resize: 'none' }}
+                                <textarea value={description} spellCheck="false" maxLength="1000" className="form-control bg-transparent text-white border-0 p-0 shadow-none" rows="4" placeholder="Tell viewers more..." style={{ resize: 'none' }}
                                     onChange={(e) => setDescription(e.target.value)}/>
                             </div>
                             <div>
@@ -349,7 +424,7 @@ const UploadWizard = ({closeUploadPage}) => {
                                                     backgroundPosition: 'center',
                                                     backgroundImage: 
                                                         (idx === 0 && uploadThumb?.image)? `url(${uploadThumb.image})` :
-                                                        (idx === 1 && autoGenThumb)? `url(${autoGenThumb})` : 
+                                                        (idx === 1 && autoGenThumbPrev)? `url(${autoGenThumbPrev})` : 
                                                         (idx === 2 && thumbnailUrl?.image)? `url(${thumbnailUrl.image})` : 
                                                         "none",
                                                     cursor: progress < 100 ? 'not-allowed' : 'pointer',
@@ -415,7 +490,14 @@ const UploadWizard = ({closeUploadPage}) => {
                         (<p className="text-[#666666] text-sm flex flex-row gap-2 mt-3"><SearchCheck color='white'></SearchCheck>Inspection completed. No issues found.</p>):
                         (<p className="text-white text-sm flex flex-row gap-2 mt-3">Loading<LoaderCircle color='white' className='animate-spin'></LoaderCircle></p>)
                     }
-                        <button type="submit" disabled={progress < 100} className="btn btn-primary px-4 fw-bold">PUBLISH</button>
+                        <button type="submit" disabled={progress < 100 || publishDone || pressBtn} 
+                            className={`btn ${publishDone? "btn-danger" : pressBtn? "btn-secondary opacity-50" : "btn-primary"} px-4 fw-bold transition-all duration-300`}>
+                            {publishDone? "DONE" : pressBtn? (
+                                <span className="d-flex align-items-center gap-2">
+                                    PROCESSING... <LoaderCircle size={18} className="animate-spin" />
+                                </span>)
+                                 : "PUBLISH"}
+                        </button>       
                 </div>
             </div>
         </div>

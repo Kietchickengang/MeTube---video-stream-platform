@@ -13,20 +13,22 @@ export const testMQ = async() => {
 
 // Add job to Redis
 export const addJobToQueue = async(video) => {
-    const { videoId, videoPath } = video;
+    const { videoId, videoPath, timestamp, file } = video;
     try{
         await videoQueue.add("processing-line", {
             videoId: videoId,
             videoPath: videoPath,
+            timestamp: timestamp,
+            file: file,
         },{
             // Prevent duplicate
             jobId: videoId, 
             // Auto retry if errors
-            attempts: 3,
+            attempts: 7,
             // Break-time each retry
             backoff: {
                 type: 'exponential', // Double each time
-                delay: 5000, // 5 seconds each time
+                delay: 1000 * 60 * 5, // 5 minutes each time
             }
         })
     }

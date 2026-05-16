@@ -1,32 +1,61 @@
-import ffmpeg from "fluent-ffmpeg";
+import Ffmpeg from "fluent-ffmpeg";
+import ffmpegPath from "ffmpeg-static";
+import ffprobePath from "ffprobe-static";
+
 import path from "path";
+import fs from "fs/promises";
+import { existsSync, mkdirSync, writeFileSync } from "fs";
 
-export const HLS = (inputFile, { hlsChunksDir, manifestDir}) => {
-    // 1> Create path to file HLS holding list of segment .ts
-    const outputPlayList = path.join(manifestDir, "index.m3u8");
+import { renditions } from "../util/checkRendition.js";
+import { m3u8_Content } from "../util/checkRendition.js";
 
-    // 2> Create path to file containing segment video
-    const segmentVid = path.join(hlsChunksDir, "segment_%03d.ts");
+Ffmpeg.setFfmpegPath(ffmpegPath);
+Ffmpeg.setFfprobePath(ffprobePath.path);
 
-    return new Promise((resolve, reject) => {
-        ffmpeg(inputFile).outputOptions(
-            [
-                "-preset fast",                             // Balance transcode speed with file size
-                "-g 48", "-sc_threshold 0",                 // Configurate Group of Pictures
-                "-c:v libx264", "-c:a aac",                 // Convert video to H264 standard and AAC sound
-                "-b:v 1200k", "-b:a 128k",                  // Set bitrate for video and audio
-                "-hls_time 6",                              // Split into segments, each lasts for 6 seconds
-                "-hls_playlist_type vod",                   // Video on demand is set for playlist type
-                "-hls_flags independent_segments",          // Every segment decodes independently
+export const HLS = async(inputFile, { manifestDir }) => {
+    // 1> Extract height from raw video
+    const metadata = await new Promise((res, rej) => {
+        Ffmpeg.ffprobe(inputFile, (err, data) => (err ? rej(err) : res(data)));
+    });
 
-                "-hls_segment_filename",                    // Set name format for output segment 
-                segmentVid,                                 // Segment format: segment_XXX.ts
-                "-hls_base_url", "../HLS_chunks/",      
-            ])
-            .output(outputPlayList)                         // Save file playlist .m3u8 to manifestDir
-            .on("error", (err) => reject(err))
-            .on("end", () => resolve(outputPlayList))       // Return path of file m3u8 
-            .run();                                         // Return playlist path after finishing encoding
-        }
-    );
+    const srcHeight = metadata.streams.find(s => s.codec_type === 'video').height;
+    const available_renditions = renditions(srcHeight);
+
+    // 2> Create Master Playlist (.m3u8)
+    const masterPlaylistPath = path.join(manifestDir, "master.m3u8");
+
+    // 3> Fill content for .m3u8
+    writeFileSync(masterPlaylistPath, m3u8_Content(srcHeight));
+
+    await Promise.all(available_renditions.map(async (res) => {
+        const resDir = path.join(manifestDir, res.name);
+
+        if (!existsSync(resDir)) mkdirSync(resDir, { recursive: true });
+
+        return new Promise((resolve, reject) => {
+            Ffmpeg(inputFile)
+                .outputOptions([
+                    "-preset fast",                        // Balance transcode speed with file size
+                    `-vf scale=-2:${res.height}`,          // Resize
+                    "-c:v libx264",
+                    "-crf 23",                             // Quality-based encoding
+                    `-maxrate ${res.bitrate}`,
+                    `-bufsize ${res.bufsize}`,
+                    "-c:a aac", "-b:a 128k",
+                    "-g 48", "-sc_threshold 0",            // Configurate Group of Pictures
+                    "-hls_time 6",
+                    "-hls_playlist_type vod",
+                    "-hls_flags independent_segments",
+                    "-hls_segment_filename", 
+                    path.join(resDir, "segment_%03d.ts"),
+                    "-hls_base_url", `./`                  // Important for Master to find segment
+                ])
+                .output(path.join(resDir, "index.m3u8")) 
+                .on("error", reject)
+                .on("end", resolve)                        // Return path of file m3u8
+                .run();                                    // Return playlist path after finishing encoding
+        });
+    }));
+
+    return available_renditions.map(p => p.name);
 }

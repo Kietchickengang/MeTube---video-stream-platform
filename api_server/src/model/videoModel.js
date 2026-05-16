@@ -17,7 +17,7 @@ export const standardInputDB = (data) => {
         hlsPath: "",
         thumbnailUrl: "",
         duration: duration || 0,
-        resolution: resolution || "360p",
+        resolution: resolution || [],
         videoSize: videoSize || 0,
         mimeType: mimeType || "",
 

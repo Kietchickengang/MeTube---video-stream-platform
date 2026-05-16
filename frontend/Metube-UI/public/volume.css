@@ -1,0 +1,34 @@
+.youtube-volume-slider {
+  -webkit-appearance: none;
+  appearance: none;
+
+  width: 80px;
+  height: 4px;
+
+  border-radius: 9999px;
+  background: rgba(255,255,255,0.3);
+
+  cursor: pointer;
+}
+
+/* Track */
+.youtube-volume-slider::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 9999px;
+  background: rgba(255,255,255,0.3);
+}
+
+/* Thumb */
+.youtube-volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+
+  width: 12px;
+  height: 12px;
+
+  border-radius: 9999px;
+  background: white;
+
+  margin-top: -4px;
+  cursor: pointer;
+}
