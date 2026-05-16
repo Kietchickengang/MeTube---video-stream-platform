@@ -66,3 +66,4 @@ export const uploadDirectoryToBucket = async( bucket, prefix, sourceDirectory, r
     // Run all in parallel
     await Promise.all(uploadTasks);
 };
+

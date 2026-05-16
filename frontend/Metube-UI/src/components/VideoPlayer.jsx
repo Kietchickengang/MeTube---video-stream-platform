@@ -2,6 +2,8 @@ import React, {useState, useRef, useEffect, useImperativeHandle, forwardRef,} fr
 import {Pause, Play, Maximize2, Minimize, Monitor, Volume2, VolumeX, Settings,} from "lucide-react";
 import Hls from "hls.js";
 
+import VideoSettings from "./VideoSettings.jsx";
+
 import { formatTime } from "../utils/cal_in4.js";
 import { controlBtnClass } from "../utils/constants.js";
 
@@ -27,6 +29,7 @@ const VideoPlayer = forwardRef(({videoPath, thumbnailUrl, isTheaterMode, toggleT
   const [isBuffering, setIsBuffering] = useState(false);
   const [volume, setVolume] = useState(1);
   const [showVolumeSlider, setShowVolumeSlider] = useState(false);
+  const [currentQuality, setCurrentQuality] = useState("Auto");
 
   useImperativeHandle(ref, () => ({
     savePlaybackState() {
@@ -101,6 +104,7 @@ const VideoPlayer = forwardRef(({videoPath, thumbnailUrl, isTheaterMode, toggleT
       hls.attachMedia(video);
 
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        setCurrentQuality("Auto");
         video.play().catch(() => {});
       });
     } 
@@ -219,7 +223,6 @@ const VideoPlayer = forwardRef(({videoPath, thumbnailUrl, isTheaterMode, toggleT
   };
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
-
   return (
     <div
       ref={containerRef}
@@ -240,9 +243,7 @@ const VideoPlayer = forwardRef(({videoPath, thumbnailUrl, isTheaterMode, toggleT
       onTouchStart={handleActivity}
     >
       <div className="absolute inset-0 bg-[#0f0f0f]">
-        <img src={thumbnailUrl} alt=""
-          className="w-full h-full object-cover scale-125 opacity-10 saturate-50"
-        />
+        <img src={thumbnailUrl} alt="" className="w-full h-full object-cover scale-125 opacity-10 saturate-50"/>
         <div className="absolute inset-0 bg-[#0f0f0f]" />
       </div>
 
@@ -294,6 +295,7 @@ const VideoPlayer = forwardRef(({videoPath, thumbnailUrl, isTheaterMode, toggleT
                       step="0.01"
                       value={isMuted ? 0 : volume}
                       onChange={handleVolumeChange}
+                      onClick={e => e.stopPropagation()}
                       className="youtube-volume-slider"
                     />
                   </div>
@@ -309,9 +311,12 @@ const VideoPlayer = forwardRef(({videoPath, thumbnailUrl, isTheaterMode, toggleT
               <button type="button" onClick={(e) => {e.stopPropagation(); toggleTheater();}} className={controlBtnClass}>
                 <Monitor size={20} />
               </button>
-              <button type="button" className={controlBtnClass}>
-                <Settings size={20} />
-              </button>
+                <VideoSettings
+                  hls={hlsRef.current}
+                  currentQuality={currentQuality}
+                  setCurrentQuality={setCurrentQuality}
+                  controlBtnClass={controlBtnClass}
+                />
               <button type="button" onClick={(e) => {e.stopPropagation(); toggleFullScreen();}} className={controlBtnClass}>
                 {isFullscreen ? <Minimize size={20} /> : <Maximize2 size={20} />}
               </button>

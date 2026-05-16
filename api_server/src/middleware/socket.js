@@ -10,7 +10,7 @@ const httpServer = http.createServer(app);
 const io = new Server(httpServer, {
     cors: {
         origin: "*",
-    }
+    },
 });
 
 io.on("connection", (socket) => {

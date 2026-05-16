@@ -8,6 +8,7 @@ import VideoPlayer from "../components/VideoPlayer";
 import VideoCard from "../components/VideoCard";
 
 import { timeAgo } from "../utils/cal_in4.js";
+import { formatOut } from "../../../../worker_server/src/util/helper.js";
 
 const api_port = 8000;
 const hostPath = `http://localhost:${api_port}/metube/videos`;
@@ -88,7 +89,7 @@ const VideoPage = () => {
 
   const VideoDetails = () => (
     <>
-      <h1 className="text-xl font-bold mb-0">{video.title}</h1>
+      <h1 className="text-xl leading-tigh tracking-none font-bold mb-0">{video.title}</h1>
       <div className="flex items-center justify-start gap-3 mb-1 flex-wrap">
         <img
           src={video.channelAvatar || "https://tinyurl.com/277pc7ru"}
@@ -99,7 +100,7 @@ const VideoPage = () => {
           <p className="mt-2 font-semibold mb-0">
             {video.channelName || "K13T DU0N9"}
           </p>
-          <p className="text-sm text-white">Subscriber</p>
+          <p className="text-xs text-gray-400 tracking-tight mt-1">{video.subscriber || "8.3 N"} subscriber</p>
         </div>
         <button className="font-semibold tracking-tight bg-red-600 text-white px-3 py-2 rounded-full hover:bg-red-700">
           Subscribe
@@ -153,24 +154,17 @@ const VideoPage = () => {
         </button>
       </div>
 
-      <div className="bg-[#222222] p-3 rounded-xl">
+      <div className="bg-[#222222] p-3 rounded-xl mb-2 h-fit leading-tight">
         <div className="flex items-center gap-4 text-sm font-semibold">
           <span>{video.views || 8386} views</span>
           <span>{timeAgo(video.createdAt)}</span>
         </div>
 
-        <div
-          className={`
-            mt-2 text-[14px] leading-6 text-[#f1f1f1]
-            whitespace-pre-wrap text-left
-            ${!expandDesc && "line-clamp-2"}
-          `}
-        >
+        <div className={`mt-2 text-[14px] leading-6 text-[#f1f1f1] whitespace-pre-wrap text-left ${!expandDesc && "line-clamp-2"}`}>
           {video.description || "No description available."}
         </div>
 
-        <button
-          onClick={() => setExpandDesc(!expandDesc)}
+        <button onClick={() => setExpandDesc(!expandDesc)}
           className="mt-1 text-sm font-semibold hover:text-gray-300"
         >
           {expandDesc ? "Show less" : "... More"}
@@ -194,7 +188,7 @@ const VideoPage = () => {
   );
 
   return (
-    <div className="w-full px-4 xl:px-6 mt-[56px]">
+    <div className="w-full px-4 xl:px-6">
       {!isTheaterMode ? (
         <div className="flex gap-6 items-start">
           <div className="flex-1 min-w-0 max-w-[calc(100%-402px)] ml-[25px]">
@@ -206,7 +200,7 @@ const VideoPage = () => {
               toggleTheater={toggleTheater}
             />
 
-            <div className="mt-4">
+            <div className="mt-3">
               <VideoDetails />
             </div>
           </div>
@@ -225,7 +219,7 @@ const VideoPage = () => {
             />
           </div>
 
-          <div className="flex gap-6 items-start mt-4">
+          <div className="flex gap-6 items-start mt-3">
             <div className="flex-1 min-w-0">
               <VideoDetails />
             </div>

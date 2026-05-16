@@ -1,3 +1,5 @@
+import crypto from "crypto";
+
 export const contentTypeMap = {
     ".m3u8": "application/vnd.apple.mpegurl",
     ".ts": "video/MP2T",
@@ -11,4 +13,19 @@ export const contentTypeMap = {
 };
 
 // Only take maximum 21 characters of name to display
-export const formatOut = (info, num = 21) => info.length > num? info.substring(0, num) + "..." : info;
+export const formatOut = (info, num = 21) => info.length > num? info.substring(0, num) + " ..." : info;
+
+export const getNowTime = () => {
+    return new Date();
+};
+
+export const getShorter = (item) => {
+    const MAX = 17;
+
+    const hash = crypto
+    .createHash('sha256')
+    .update(item)
+    .digest('hex');
+
+    return hash.substring(0, MAX);
+}

@@ -9,8 +9,7 @@ import os from "os";
 // --- /tmp/metube-videoId-X/
 // --- ├── raw.mp4
 // --- └── output/
-// ---     ├── thumbnail/
-// ---     │   └── thumbnail.jpg
+// ---     ├── thumbnail
 // ---     │
 // ---     └── manifest/
 // ---         ├─ master.m3u8
@@ -22,6 +21,8 @@ import os from "os";
 // ---         ├─ ├─ ...
 // ---         ...
 
+import { getShorter } from './helper.js';
+
 export const setUpWrkEnv = async(input) => {
     const { videoId, videoPath } = input;
     // 1> Extract file extension
@@ -29,7 +30,7 @@ export const setUpWrkEnv = async(input) => {
     
     // 2> Create new temporary directory. Format: '/tmp/metube-videoId-X'
     //    X is padded randomly by NodeJS
-    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), `metube-${videoId}-`));
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), `metube-${getShorter(videoId)}-`));
 
     // 3> Create path to raw file inside tempDir
     //    to save raw video and stabilize it
