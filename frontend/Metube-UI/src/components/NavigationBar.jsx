@@ -1,9 +1,16 @@
-import { Search, Menu, Video, Bell, User, Mic, Play, Plus } from "lucide-react";
+import { Search, Menu, Video, Bell, User, Mic, Play, Plus, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext.jsx";
 
 // Khởi tạo hook navigate
 const Navbar = ({ goToUploadPage, toggleSidebar }) => {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/');
+  };
 
   return (
     <nav className="fixed top-0 w-full bg-[#0f0f0f] text-white flex justify-between items-center px-4 h-14 z-50">
@@ -55,12 +62,38 @@ const Navbar = ({ goToUploadPage, toggleSidebar }) => {
           <Bell size={24} strokeWidth={1.5} />
         </button>
         
-        <button className="p-1.5 border-none text-[#FFFFFF] rounded-full flex items-center gap-2 px-3 hover:bg-[#263850] hover:border-transparent transition ml-2">
-          <div className="border-2 border-[#999999] rounded-full p-0.5">
-            <User size={20} strokeWidth={3}/>
+        {user ? (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => navigate('/profile')}
+              className="p-1.5 border-none text-[#FFFFFF] rounded-full flex items-center gap-2 px-3 hover:bg-[#263850] hover:border-transparent transition"
+            >
+              <div className="border-2 border-[#999999] rounded-full p-0.5">
+                <User size={20} strokeWidth={3}/>
+              </div>
+              <span className="text-[14px] font-semibold hidden md:inline text-[#FF3366] truncate max-w-[120px]">
+                {user.name}
+              </span>
+            </button>
+            <button
+              onClick={handleLogout}
+              className="p-2 hover:bg-[#272727] rounded-full text-white transition hidden sm:block"
+              title="Đăng xuất"
+            >
+              <LogOut size={20} strokeWidth={1.5} />
+            </button>
           </div>
-          <span className="text-[16px] font-bold hidden md:inline hover:no-underline hover:!text-[#FF3366]">Đăng nhập</span>
-        </button>
+        ) : (
+          <button
+            className="p-1.5 border-none text-[#FFFFFF] rounded-full flex items-center gap-2 px-3 hover:bg-[#263850] hover:border-transparent transition ml-2"
+            onClick={() => navigate('/login')}
+          >
+            <div className="border-2 border-[#999999] rounded-full p-0.5">
+              <User size={20} strokeWidth={3}/>
+            </div>
+            <span className="text-[16px] font-bold hidden md:inline hover:no-underline hover:!text-[#FF3366]">Đăng nhập</span>
+          </button>
+        )}
       </div>
     </nav>
   );

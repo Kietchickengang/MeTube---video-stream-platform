@@ -15,6 +15,9 @@ import LikedVideosPage from "./LikedVideosPage";
 import SettingsPage from "./SettingsPage";
 import ReportHistoryPage from "./ReportHistoryPage";
 import HelpPage from "./HelpPage";
+import LoginPage from "./LoginPage";
+import RegisterPage from "./RegisterPage";
+import ProfilePage from "./ProfilePage";
 
 const LayOut = () => {
   const [showUploadPage, setShowUploadPage] = useState(false);
@@ -42,6 +45,9 @@ const LayOut = () => {
             <Route path="/help" element={<HelpPage />} />
             <Route path="/video/:id" element={<VideoPage />} />
             <Route path="/upload" element={<UploadPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
           </Routes>
         </main>
 
