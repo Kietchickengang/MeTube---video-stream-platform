@@ -7,24 +7,39 @@ import Sidebar from "../components/SideBar";
 import HomePage from "./HomePage";
 import VideoPage from "./VideoPage";
 import UploadPage from "./UploadPage";
+import SubscriptionsPage from "./SubscriptionsPage";
+import WatchHistoryPage from "./WatchHistoryPage";
+import YourVideosPage from "./YourVideosPage";
+import WatchLaterPage from "./WatchLaterPage";
+import LikedVideosPage from "./LikedVideosPage";
+import SettingsPage from "./SettingsPage";
+import ReportHistoryPage from "./ReportHistoryPage";
+import HelpPage from "./HelpPage";
 
 const LayOut = () => {
   const [showUploadPage, setShowUploadPage] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-  const location = useLocation();
-
-  const isVideoPage = location.pathname.startsWith("/video/");
+  // keep sidebar visible on all pages when open
 
   return (
     <div className="bg-[#0f0f0f] min-h-screen text-[#f1f1f1]">
-      <Navbar goToUploadPage={() => setShowUploadPage(true)} />
+      <Navbar goToUploadPage={() => setShowUploadPage(true)} toggleSidebar={() => setIsSidebarOpen((prev) => !prev)} />
 
-      <div className="flex">
-        {!isVideoPage && <Sidebar />}
+      <div className="flex pt-14">
+        {isSidebarOpen && <Sidebar />}
 
-        <main className="flex-1 p-2 bg-[#0f0f0f] mt-[10px]">
+        <main className={`flex-1 p-2 bg-[#0f0f0f] min-h-[calc(100vh-56px)] transition-all duration-300 ${isSidebarOpen ? "md:ml-60" : "md:ml-0"}`}>
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/subscriptions" element={<SubscriptionsPage />} />
+            <Route path="/history" element={<WatchHistoryPage />} />
+            <Route path="/your-videos" element={<YourVideosPage />} />
+            <Route path="/watch-later" element={<WatchLaterPage />} />
+            <Route path="/liked" element={<LikedVideosPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/reports" element={<ReportHistoryPage />} />
+            <Route path="/help" element={<HelpPage />} />
             <Route path="/video/:id" element={<VideoPage />} />
             <Route path="/upload" element={<UploadPage />} />
           </Routes>

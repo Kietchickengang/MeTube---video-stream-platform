@@ -2,7 +2,7 @@ import { Search, Menu, Video, Bell, User, Mic, Play, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 // Khởi tạo hook navigate
-const Navbar = ({ goToUploadPage }) => {
+const Navbar = ({ goToUploadPage, toggleSidebar }) => {
   const navigate = useNavigate();
 
   return (
@@ -10,7 +10,7 @@ const Navbar = ({ goToUploadPage }) => {
       
       {/* Bên trái: Menu & Logo */}
       <div className="flex items-center gap-3">
-        <button className="p-2 hover:bg-[#272727] rounded-full transition text-white">
+        <button onClick={toggleSidebar} className="p-2 hover:bg-[#272727] rounded-full transition text-white">
           <Menu size={23} strokeWidth={1.5} />
         </button>
         
