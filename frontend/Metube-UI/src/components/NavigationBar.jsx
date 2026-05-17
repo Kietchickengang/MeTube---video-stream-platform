@@ -5,13 +5,13 @@ import { useNavigate } from "react-router-dom";
 const Navbar = ({ goToUploadPage }) => {
   const navigate = useNavigate();
 
+const Navbar = ({toggleSidebar, goToUploadPage}) => {
   return (
     <nav className="fixed top-0 w-full bg-[#0f0f0f] text-white flex justify-between items-center px-4 h-14 z-50">
-      
-      {/* Bên trái: Menu & Logo */}
+      {/* 1. Bên trái: Menu & Logo */}
       <div className="flex items-center gap-3">
-        <button className="p-2 hover:bg-[#272727] rounded-full transition text-white">
-          <Menu size={23} strokeWidth={1.5} />
+        <button className="p-2 hover:bg-[#272727] rounded-full border-none transition text-white" onClick={toggleSidebar}>
+          <Menu size={23} strokeWidth={1.5}/>
         </button>
         
         {/* Thêm sự kiện onClick và điều hướng về "/" */}

@@ -226,8 +226,8 @@ const UploadWizard = ({closeUploadPage}) => {
 
                 // Metadata for processing thumbnail
                 thumbIn4: {
-                    timestamp: thumbnailUrl?.timestamp,
-                    file: thumbPath, // Path to vietnix storing user's uploaded file
+                    timestamp: thumbnailUrl?.timestamp ?? null,
+                    file: thumbPath ? `${thumbPath}/thumbnail.jpg` : null, // Path to vietnix storing user's uploaded file
                 }
             });
         }
@@ -388,7 +388,7 @@ const UploadWizard = ({closeUploadPage}) => {
                                 <label className="form-label text-secondary small d-flex align-items-center gap-1">
                                     Description <CircleHelp size={14} />
                                 </label>
-                                <textarea value={description} spellCheck="false" maxLength="1000" className="form-control bg-transparent text-white border-0 p-0 shadow-none" rows="4" placeholder="Tell viewers more..." style={{ resize: 'none' }}
+                                <textarea value={description} spellCheck="false" maxLength="5000" className="form-control bg-transparent text-white border-0 p-0 shadow-none" rows="4" placeholder="Tell viewers more..." style={{ resize: 'none' }}
                                     onChange={(e) => setDescription(e.target.value)}/>
                             </div>
                             <div>
