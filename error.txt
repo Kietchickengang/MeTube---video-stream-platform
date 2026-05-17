@@ -1,0 +1,35 @@
+Access to XMLHttpRequest at 'http://localhost:8000/metube/auth/register' from origin 'http://localhost:5173' has been blocked by CORS policy: Request header field content-type is not allowed by Access-Control-Allow-Headers in preflight response.
+RegisterPage.jsx:25 Register error details: AxiosError: Network Error
+    at async registerUser (authService.js:16:20)
+    at async handleSubmit (RegisterPage.jsx:19:20)
+(anonymous)	@	RegisterPage.jsx:25
+<form>		
+(anonymous)	@	RegisterPage.jsx:35
+<RegisterPage>		
+(anonymous)	@	LayOut.jsx:48
+<LayOut>		
+App	@	App.jsx:9
+<App>		
+(anonymous)	@	main.jsx:10
+RegisterPage.jsx:26 Error response: undefined
+(anonymous)	@	RegisterPage.jsx:26
+<form>		
+(anonymous)	@	RegisterPage.jsx:35
+<RegisterPage>		
+(anonymous)	@	LayOut.jsx:48
+<LayOut>		
+App	@	App.jsx:9
+<App>		
+(anonymous)	@	main.jsx:10
+authService.js:16 
+ POST http://localhost:8000/metube/auth/register net::ERR_FAILED
+(anonymous)	@	authService.js:16
+(anonymous)	@	RegisterPage.jsx:19
+<form>		
+(anonymous)	@	RegisterPage.jsx:35
+<RegisterPage>		
+(anonymous)	@	LayOut.jsx:48
+<LayOut>		
+App	@	App.jsx:9
+<App>		
+(anonymous)	@	main.jsx:10

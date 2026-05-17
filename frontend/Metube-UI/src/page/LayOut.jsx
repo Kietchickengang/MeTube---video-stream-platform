@@ -50,15 +50,18 @@ const LayOut = () => {
             <Route path="/profile" element={<ProfilePage />} />
           </Routes>
         </main>
-
-        {showUploadPage && (
-          <div className="fixed inset-0 z-[100] bg-opacity-60 flex justify-center items-center backdrop-blur-sm">
-            <div className="w-full max-w-[1000px]">
-              <UploadPage isClose={() => setShowUploadPage(false)} />
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* ===== UPLOAD MODAL ===== */}
+      {showUploadPage && (
+        <div className="fixed inset-0 z-[100] bg-black/60 flex justify-center items-center backdrop-blur-sm">
+          <div className="w-full max-w-[1000px]">
+            <UploadPage
+              isClose={() => setShowUploadPage(false)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
