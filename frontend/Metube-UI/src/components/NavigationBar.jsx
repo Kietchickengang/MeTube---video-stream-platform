@@ -14,7 +14,8 @@ const Navbar = ({ goToUploadPage, toggleSidebar }) => {
 
   return (
     <nav className="fixed top-0 w-full bg-[#0f0f0f] text-white flex justify-between items-center px-4 h-14 z-50">
-      {/* 1. Bên trái: Menu & Logo */}
+      
+      {/* Bên trái: Menu & Logo */}
       <div className="flex items-center gap-3">
         <button onClick={toggleSidebar} className="p-2 hover:bg-[#272727] rounded-full transition text-white">
           <Menu size={23} strokeWidth={1.5} />

@@ -1,35 +1,54 @@
-Access to XMLHttpRequest at 'http://localhost:8000/metube/auth/register' from origin 'http://localhost:5173' has been blocked by CORS policy: Request header field content-type is not allowed by Access-Control-Allow-Headers in preflight response.
-RegisterPage.jsx:25 Register error details: AxiosError: Network Error
-    at async registerUser (authService.js:16:20)
-    at async handleSubmit (RegisterPage.jsx:19:20)
-(anonymous)	@	RegisterPage.jsx:25
-<form>		
-(anonymous)	@	RegisterPage.jsx:35
-<RegisterPage>		
-(anonymous)	@	LayOut.jsx:48
-<LayOut>		
-App	@	App.jsx:9
-<App>		
-(anonymous)	@	main.jsx:10
-RegisterPage.jsx:26 Error response: undefined
-(anonymous)	@	RegisterPage.jsx:26
-<form>		
-(anonymous)	@	RegisterPage.jsx:35
-<RegisterPage>		
-(anonymous)	@	LayOut.jsx:48
-<LayOut>		
-App	@	App.jsx:9
-<App>		
-(anonymous)	@	main.jsx:10
-authService.js:16 
- POST http://localhost:8000/metube/auth/register net::ERR_FAILED
-(anonymous)	@	authService.js:16
-(anonymous)	@	RegisterPage.jsx:19
-<form>		
-(anonymous)	@	RegisterPage.jsx:35
-<RegisterPage>		
-(anonymous)	@	LayOut.jsx:48
-<LayOut>		
-App	@	App.jsx:9
-<App>		
-(anonymous)	@	main.jsx:10
+authService.js:31  GET http://localhost:8000/metube/auth/me 401 (Unauthorized)
+dispatchXhrRequest @ xhr.js:224
+(anonymous) @ xhr.js:16
+dispatchRequest @ dispatchRequest.js:48
+_request @ Axios.js:218
+request @ Axios.js:41
+(anonymous) @ Axios.js:244
+wrap @ bind.js:12
+(anonymous) @ authService.js:31
+(anonymous) @ AuthContext.jsx:13
+(anonymous) @ AuthContext.jsx:23
+react_stack_bottom_frame @ react-dom-client.development.js:25989
+runWithFiberInDEV @ react-dom-client.development.js:871
+commitHookEffectListMount @ react-dom-client.development.js:13249
+commitHookPassiveMountEffects @ react-dom-client.development.js:13336
+reconnectPassiveEffects @ react-dom-client.development.js:15832
+recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:15784
+reconnectPassiveEffects @ react-dom-client.development.js:15885
+recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:15784
+reconnectPassiveEffects @ react-dom-client.development.js:15885
+recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:15784
+reconnectPassiveEffects @ react-dom-client.development.js:15824
+recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:15784
+reconnectPassiveEffects @ react-dom-client.development.js:15824
+recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:15784
+reconnectPassiveEffects @ react-dom-client.development.js:15824
+recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:15784
+reconnectPassiveEffects @ react-dom-client.development.js:15885
+doubleInvokeEffectsOnFiber @ react-dom-client.development.js:18703
+runWithFiberInDEV @ react-dom-client.development.js:871
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:18667
+commitDoubleInvokeEffectsInDEV @ react-dom-client.development.js:18712
+flushPassiveEffects @ react-dom-client.development.js:18439
+(anonymous) @ react-dom-client.development.js:17923
+performWorkUntilDeadline @ scheduler.development.js:45
+<AuthProvider>
+(anonymous) @ react-jsx-dev-runtime.development.js:335
+App @ App.jsx:10
+react_stack_bottom_frame @ react-dom-client.development.js:25904
+renderWithHooksAgain @ react-dom-client.development.js:7762
+renderWithHooks @ react-dom-client.development.js:7674
+updateFunctionComponent @ react-dom-client.development.js:10166
+beginWork @ react-dom-client.development.js:11778
+runWithFiberInDEV @ react-dom-client.development.js:871
+performUnitOfWork @ react-dom-client.development.js:17641
+workLoopSync @ react-dom-client.development.js:17469
+renderRootSync @ react-dom-client.development.js:17450
+performWorkOnRoot @ react-dom-client.development.js:16504
+performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:18957
+performWorkUntilDeadline @ scheduler.development.js:45
+<App>
+(anonymous) @ react-jsx-dev-runtime.development.js:335
+(anonymous) @ main.jsx:10
+AuthContext.jsx:16 Not authenticated

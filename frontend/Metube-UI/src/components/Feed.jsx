@@ -35,7 +35,7 @@ const Feed = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#0f0f0f] text-white mt-7 px-4 py-4 md:pl-0">
+    <div className="min-h-screen bg-[#0f0f0f] text-white mt-7 px-4 py-4">
       {/* 2. Grid Videos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-4 gap-y-8">
         {videos.map((video) => (

@@ -19,9 +19,6 @@ const SidebarItem = ({ icon: Icon, title, to }) => (
 );
 
 const Sidebar = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-
   return (
     <aside className="w-60 hidden md:flex flex-col fixed top-14 left-0 h-[calc(100vh-56px)] overflow-y-auto p-2 scrollbar-hide bg-[#0f0f0f]">
       
