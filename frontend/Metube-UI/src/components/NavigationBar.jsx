@@ -2,9 +2,6 @@ import { Search, Menu, Video, Bell, User, Mic, Play, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 // Khởi tạo hook navigate
-const Navbar = ({ goToUploadPage }) => {
-  const navigate = useNavigate();
-
 const Navbar = ({toggleSidebar, goToUploadPage}) => {
   return (
     <nav className="fixed top-0 w-full bg-[#0f0f0f] text-white flex justify-between items-center px-4 h-14 z-50">
