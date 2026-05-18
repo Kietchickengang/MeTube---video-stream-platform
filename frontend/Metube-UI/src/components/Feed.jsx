@@ -35,22 +35,7 @@ const Feed = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#0f0f0f] text-white mt-0 px-4">
-      {/* 1. Thanh Tabs Phân loại (Dark Style) */}
-      <div className="mb-3 flex gap-3 overflow-x-auto pb-2 no-scrollbar">
-        {['Tất cả', 'Âm nhạc', 'Trò chơi', 'Trực tiếp', 'Học tập', 'Tin tức', 'Mới tải lên gần đây'].map((tab, index) => (
-          <button 
-            key={tab} 
-            className={`flex justify-center items-center whitespace-nowrap px-3 py-1.5 rounded-lg text-[14px] font-medium transition
-              ${index === 0 
-                ? 'bg-white text-black' 
-                : 'bg-[#272727] text-white hover:bg-[#3f3f3f]'}`}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
-
+    <div className="min-h-screen bg-[#0f0f0f] text-white mt-7 px-4 py-4">
       {/* 2. Grid Videos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-4 gap-y-8">
         {videos.map((video) => (

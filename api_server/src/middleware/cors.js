@@ -9,9 +9,11 @@ const cors_config = {
     // Allowed methods
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD', 'PATCH'],
     // Allowed headers
-    allowedHeaders: '*',
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
     // For session/cookie
-    credentials: true
+    credentials: true,
+    // Expose headers for client to read
+    exposedHeaders: ['Content-Type', 'Set-Cookie'],
 }
 
 export const cors_rule = cors(cors_config);
