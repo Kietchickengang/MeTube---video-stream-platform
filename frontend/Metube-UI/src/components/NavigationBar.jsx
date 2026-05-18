@@ -1,15 +1,25 @@
 import { Search, Menu, Video, Bell, User, Mic, Play, Plus, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
+import { useState } from "react";
 
 // Khởi tạo hook navigate
 const Navbar = ({ goToUploadPage, toggleSidebar }) => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handleLogout = async () => {
     await logout();
     navigate('/');
+  };
+
+  const handleSearch = (event) => {
+    event.preventDefault();
+    const query = searchQuery.trim();
+    if (query) {
+      navigate(`/search?q=${encodeURIComponent(query)}`);
+    }
   };
 
   return (
@@ -35,19 +45,21 @@ const Navbar = ({ goToUploadPage, toggleSidebar }) => {
 
       {/* Ở giữa: Thanh tìm kiếm (YouTube Dark Style) */}
       <div className="hidden md:flex flex-1 max-w-[720px] ml-10 items-center gap-4">
-        <div className="flex w-full">
+        <form onSubmit={handleSearch} className="flex w-full">
           <div className="flex items-center w-full bg-[#121212] border-none rounded-l-full px-4 py-2 focus-within:border-[#1c62b9] focus-within:ml-[-1px] transition-all">
             <Search size={18} className="text-[#aaaaaa] mr-3 hidden focus-within:block" />
             <input 
               type="text" 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Tìm kiếm" 
               className="w-full bg-transparent outline-none text-[17px] placeholder-[#aaaaaa] text-[#f1f1f1]"
             />
           </div>
-          <button className="bg-[#222222] border-none rounded-r-full px-4 py-1.5 hover:bg-[#272727] transition shadow-sm group">
+          <button type="submit" className="bg-[#222222] border-none rounded-r-full px-4 py-1.5 hover:bg-[#272727] transition shadow-sm group">
             <Search size={20} strokeWidth={2.5} className="text-[#f1f1f1]" />
           </button>
-        </div>
+        </form>
         <button className="p-2.5 bg-[#181818] hover:bg-[#272727] rounded-full transition text-white">
           <Mic size={20} />
         </button>

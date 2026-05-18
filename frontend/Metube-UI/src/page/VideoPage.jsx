@@ -6,7 +6,8 @@ import { SiGooglegemini } from "react-icons/si";
 
 import VideoPlayer from "../components/VideoPlayer";
 import VideoCard from "../components/VideoCard";
-
+import { useAuth } from "../context/AuthContext.jsx";
+import { addWatchHistory, isSubscribed, toggleSubscription } from "../service/userDataService.js";
 import { timeAgo } from "../utils/cal_in4.js";
 import { formatOut } from "../../../../worker_server/src/util/helper.js";
 
@@ -16,6 +17,7 @@ const prefix = "https://s3.vn-hcm-1.vietnix.cloud/processed-video";
 
 const VideoPage = () => {
   const { id } = useParams();
+  const { user } = useAuth();
   const [video, setVideo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -23,6 +25,7 @@ const VideoPage = () => {
   const [isTheaterMode, setIsTheaterMode] = useState(false);
   const [expandDesc, setExpandDesc] = useState(false);
   const [recommendedVideos, setRecommendedVideos] = useState([]);
+  const [subscribed, setSubscribed] = useState(false);
 
   const playerRef = useRef(null);
 
@@ -69,6 +72,13 @@ const VideoPage = () => {
     loadRecommended();
   }, [id]);
 
+  useEffect(() => {
+    if (video && user) {
+      addWatchHistory(user, video);
+      setSubscribed(isSubscribed(user, video.channelName || ""));
+    }
+  }, [user, video]);
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -105,8 +115,18 @@ const VideoPage = () => {
           </p>
           <p className="text-xs text-gray-400 tracking-tight mt-1">{video.subscriber || "8.3 N"} subscriber</p>
         </div>
-        <button className="font-semibold tracking-tight bg-red-600 text-white px-3 py-2 rounded-full hover:bg-red-700">
-          Subscribe
+        <button
+          onClick={() => {
+            if (!user) return;
+            const next = toggleSubscription(user, {
+              channelName: video.channelName || "Kênh không xác định",
+              channelAvatar: video.channelAvatar || null,
+            });
+            setSubscribed(next.some((item) => item.channelName === video.channelName));
+          }}
+          className={`font-semibold tracking-tight px-3 py-2 rounded-full transition ${subscribed ? 'bg-gray-500 hover:bg-gray-400' : 'bg-red-600 hover:bg-red-700'} text-white`}
+        >
+          {subscribed ? 'Đã đăng ký' : 'Subscribe'}
         </button>
 
         <div className="flex items-center bg-[#222222] rounded-full overflow-hidden tracking-tight ml-auto">

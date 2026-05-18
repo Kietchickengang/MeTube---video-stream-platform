@@ -5,6 +5,7 @@ import Navbar from "../components/NavigationBar";
 import Sidebar from "../components/SideBar";
 
 import HomePage from "./HomePage";
+import SearchPage from "./SearchPage";
 import VideoPage from "./VideoPage";
 import UploadPage from "./UploadPage";
 import SubscriptionsPage from "./SubscriptionsPage";
@@ -33,7 +34,7 @@ const LayOut = () => {
   }, [isVideoPage]);
 
   return (
-    <div className="bg-[#0f0f0f] min-h-screen text-[#f1f1f1]">
+    <div className={`${rootClasses} min-h-screen`}>
       <Navbar goToUploadPage={() => setShowUploadPage(true)} toggleSidebar={() => setIsSidebarOpen((prev) => !prev)} />
 
       <div className="flex pt-14">
@@ -63,6 +64,7 @@ const LayOut = () => {
         }`}>
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/search" element={<SearchPage />} />
             <Route path="/subscriptions" element={<SubscriptionsPage />} />
             <Route path="/history" element={<WatchHistoryPage />} />
             <Route path="/your-videos" element={<YourVideosPage />} />
