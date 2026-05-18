@@ -30,45 +30,81 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="mx-auto max-w-md rounded-3xl border border-[#272727] bg-[#121212] p-8 shadow-xl shadow-black/20">
-      <h1 className="mb-6 text-center text-3xl font-semibold text-white">Đăng nhập</h1>
-      <form onSubmit={handleSubmit} className="space-y-5">
-        <div>
-          <label className="mb-2 block text-sm font-medium text-[#bbbbbb]">Email</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Nhập email"
-            className="w-full rounded-2xl border border-[#333333] bg-[#0f0f0f] px-4 py-3 text-white outline-none focus:border-[#1c62b9]"
-          />
+    <div className="mt-10 relative mx-auto max-w-md overflow-hidden rounded-3xl border-none border-zinc-800/60 bg-[#0f0f0f] p-10 shadow-2xl shadow-black/40">
+      {/* Ambient Glow Effects (Hiệu ứng hào quang mờ kiểu YouTube Premium) */}
+      <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-[#3ea6ff]/10 blur-[60px] pointer-events-none"></div>
+      <div className="absolute -left-12 -bottom-12 h-40 w-40 rounded-full bg-red-500/5 blur-[60px] pointer-events-none"></div>
+
+      <div className="relative z-10">
+        {/* Header */}
+        <div className="mb-8 text-center">
+          <h1 className="text-3xl font-bold tracking-tight text-zinc-100">Đăng nhập</h1>
+          <p className="mt-3 text-sm text-zinc-400">Tiếp tục trải nghiệm không gian giải trí của bạn</p>
         </div>
 
-        <div>
-          <label className="mb-2 block text-sm font-medium text-[#bbbbbb]">Mật khẩu</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Nhập mật khẩu"
-            className="w-full rounded-2xl border border-[#333333] bg-[#0f0f0f] px-4 py-3 text-white outline-none focus:border-[#1c62b9]"
-          />
-        </div>
+        <form onSubmit={handleSubmit} className="space-y-6 font-inter font-semibold">
+          {/* Email Input */}
+          <div className="group relative">
+            <label className="mb-3 block text-sm font-bold uppercase tracking-wider text-red-100 transition-colors duration-200 group-focus-within:text-red-400">
+              Email
+            </label>
+            <input
+              autoComplete='false'
+              spellCheck={false}
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Nhập email của bạn"
+              className="w-full rounded-xl border-none bg-zinc-900/40 px-4 py-2.5 text-md text-zinc-100 placeholder-zinc-600 transition-all duration-200 outline-none focus:border-[#3ea6ff] focus:bg-zinc-900/90 focus:ring-4 focus:ring-[#3ea6ff]/10"
+            />
+          </div>
 
-        {error && <div className="rounded-xl bg-red-700/20 p-3 text-sm text-red-200">{error}</div>}
-        {message && <div className="rounded-xl bg-emerald-700/20 p-3 text-sm text-emerald-200">{message}</div>}
+          {/* Password Input */}
+          <div className="group relative">
+            <label className="mb-3 block text-sm font-bold uppercase tracking-wider text-red-100 transition-colors duration-200 group-focus-within:text-red-400">
+              Password
+            </label>
+            <input
+              autoComplete='false'
+              spellCheck={false}
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Nhập mật khẩu"
+              className="w-full rounded-xl border-none border-zinc-800 bg-zinc-900/40 px-4 py-2.5 text-md text-zinc-100 placeholder-zinc-600 transition-all duration-200 outline-none focus:border-[#3ea6ff] focus:bg-zinc-900/90 focus:ring-4 focus:ring-[#3ea6ff]/10"
+            />
+          </div>
 
-        <button type="submit" className="w-full rounded-full bg-[#1c62b9] px-5 py-3 text-white transition hover:bg-[#15488e]">
-          Đăng nhập
-        </button>
-      </form>
+          {/* Status Messages */}
+          {error && (
+            <div className="flex items-center gap-2.5 rounded-xl border-none border-red-500/20 bg-red-500/10 p-3.5 text-sm font-mono text-red-400 transition-all">
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-red-500"></span>
+              {error}
+            </div>
+          )}
+          {message && (
+            <div className="flex items-center gap-2.5 rounded-xl border-none border-emerald-500/20 bg-emerald-500/10 p-3.5 text-sm font-mono text-emerald-400 transition-all">
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500"></span>
+              {message}
+            </div>
+          )}
 
-      <p className="mt-6 text-center text-sm text-[#aaaaaa]">
-        Chưa có tài khoản?{' '}
-        <Link to="/register" className="text-[#58a6ff] hover:underline">
-          Đăng ký ngay
-        </Link>
-      </p>
+          <button
+            type="submit"
+            className="w-full rounded-full bg-zinc-100 py-2.5 text-md font-semibold text-black transition-all duration-200 hover:bg-white hover:scale-[1.01] active:scale-[0.99] shadow-md"
+          >
+            Đăng nhập
+          </button>
+        </form>
+
+        {/* Footer Link */}
+        <p className="mt-8 text-center text-md text-zinc-500">
+          Chưa có tài khoản?{' '}
+          <Link to="/register" className="ml-2 font-semibold text-red-400 hover:underline transition-colors">
+            Đăng ký ngay
+          </Link>
+        </p>
+      </div>
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, PlaySquare, Clock, ThumbsUp, History, Settings, Flag, HelpCircle } from "lucide-react";
+import { Home, PlaySquare, Clock, ThumbsUp, History, Settings, Flag, HelpCircle, Bell } from "lucide-react";
+import { SiYoutubeshorts } from "react-icons/si";
 
 const SidebarItem = ({ icon: Icon, title, to }) => (
   <NavLink
@@ -9,7 +10,8 @@ const SidebarItem = ({ icon: Icon, title, to }) => (
     className={({ isActive }) => `no-underline flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${isActive ? "bg-[#272727] font-semibold text-white" : "text-[#f1f1f1] hover:bg-[#272727]"}`}>
     {({ isActive }) => (
       <>
-        <Icon size={22} strokeWidth={isActive ? 2.2 : 1.5} className="flex-shrink-0" />
+        {Icon !== SiYoutubeshorts && <Icon size={22} strokeWidth={isActive ? 2.2 : 1.5} className="flex-shrink-0" />}
+        {Icon === SiYoutubeshorts && <Icon size={22} strokeWidth={0} className="flex-shrink-0" />}
         <span className="text-[15px] tracking-tight text-inherit transition-all duration-200 whitespace-nowrap overflow-hidden text-ellipsis">
           {title}
         </span>
@@ -21,11 +23,11 @@ const SidebarItem = ({ icon: Icon, title, to }) => (
 const Sidebar = () => {
   return (
     <aside className="w-60 hidden md:flex flex-col fixed top-14 left-0 h-[calc(100vh-56px)] overflow-y-auto p-2 scrollbar-hide bg-[#0f0f0f]">
-      
       {/* Section Main */}
       <div className="flex flex-col border-b border-[#3f3f3f] pb-3 mb-1.8">
         <SidebarItem icon={Home} title="Trang chủ" to="/" />
-        <SidebarItem icon={History} title="Kênh đăng ký" to="/subscriptions" />
+        <SidebarItem icon={SiYoutubeshorts} title="Shorts" to="/shorts"/>
+        <SidebarItem icon={Bell} title="Kênh đăng ký" to="/subscriptions" />
       </div>
 
       {/* Section Personal */}
@@ -38,17 +40,17 @@ const Sidebar = () => {
       </div>
 
       {/* Section Settings */}
-      <div className="flex flex-col py-3">
+      <div className="flex flex-col py-3  border-b border-[#3f3f3f]">
         <SidebarItem icon={Settings} title="Cài đặt" to="/settings" />
         <SidebarItem icon={Flag} title="Nhật ký báo cáo" to="/reports" />
         <SidebarItem icon={HelpCircle} title="Trợ giúp" to="/help" />
       </div>
       
       {/* Footer */}
-      <div className="px-3 py-3 text-[12px] text-[#aaaaaa] font-medium leading-relaxed">
-        <p className="mb-2">• Giới thiệu <br></br>• Bản quyền <br></br> • Liên hệ <br></br>• Quảng cáo</p>
-        <p>© 2026 - K13T & L0C</p>
-      </div>
+        <div className="px-3 py-3 text-[13px] text-[#aaaaaa] font-semibold leading-relaxed ml-2">
+          <p className="mb-2">• Giới thiệu <br></br>• Bản quyền <br></br> • Liên hệ <br></br>• Quảng cáo</p>
+          <p>© 2026 - K13T & L0C</p>
+        </div>
     </aside>
   );
 };
