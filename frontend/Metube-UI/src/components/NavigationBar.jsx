@@ -75,15 +75,16 @@ const Navbar = ({ goToUploadPage, toggleSidebar }) => {
         </button>
         
         {user ? (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center">
             <button
               onClick={() => navigate('/profile')}
-              className="p-1.5 border-none text-[#FFFFFF] rounded-full flex items-center gap-2 px-3 hover:bg-[#263850] hover:border-transparent transition"
+              className="p-1 border-none text-[#FFFFFF] rounded-full flex items-center gap-2 px-3 hover:bg-[#272727] hover:border-transparent transition"
             >
               <div className="border-2 border-[#999999] rounded-full p-0.5">
-                <User size={20} strokeWidth={3}/>
+                {!user && <User size={20} strokeWidth={3}/>}
+                { user && <img src="https://tinyurl.com/49hydya9" className="h-8 w-8 rounded-full object-cover"></img>}
               </div>
-              <span className="text-[14px] font-semibold hidden md:inline text-[#FF3366] truncate max-w-[120px]">
+              <span className="text-md font-semibold hidden md:inline text-white truncate max-w-[120px]">
                 {user.name}
               </span>
             </button>
@@ -92,7 +93,7 @@ const Navbar = ({ goToUploadPage, toggleSidebar }) => {
               className="p-2 hover:bg-[#272727] rounded-full text-white transition hidden sm:block"
               title="Đăng xuất"
             >
-              <LogOut size={20} strokeWidth={1.5} />
+              <LogOut size={22} strokeWidth={3} />
             </button>
           </div>
         ) : (

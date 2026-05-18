@@ -47,10 +47,12 @@ const VideoPage = () => {
         }
         const data = await response.json();
         setVideo(data);
-      } catch (error) {
+      } 
+      catch (error) {
         console.error(error);
         setError("Failed to load video");
-      } finally {
+      } 
+      finally {
         setLoading(false);
       }
     };
@@ -60,7 +62,8 @@ const VideoPage = () => {
         const res = await fetch(hostPath);
         const data = await res.json();
         setRecommendedVideos(data);
-      } catch (err) {
+      } 
+      catch (err) {
         console.error(err);
       }
     };

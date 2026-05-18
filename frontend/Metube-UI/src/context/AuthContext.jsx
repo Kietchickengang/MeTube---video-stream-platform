@@ -12,10 +12,12 @@ export const AuthProvider = ({ children }) => {
       try {
         const data = await getCurrentUser();
         setUser(data.user);
-      } catch (err) {
+      } 
+      catch (err) {
         console.log('Not authenticated');
         setUser(null);
-      } finally {
+      } 
+      finally {
         setLoading(false);
       }
     };
@@ -27,7 +29,8 @@ export const AuthProvider = ({ children }) => {
     try {
       await logoutUser();
       setUser(null);
-    } catch (err) {
+    } 
+    catch (err) {
       console.error('Logout error:', err);
     }
   };
