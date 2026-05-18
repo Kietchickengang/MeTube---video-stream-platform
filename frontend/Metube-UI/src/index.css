@@ -57,3 +57,42 @@ img {
   color: #6c757d !important;
   opacity: 1; /* Firefox */
 }
+
+html.theme-dark body {
+  background-color: #0b0b0d;
+  color: #f3f4f6;
+}
+
+html.theme-light body {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+html.theme-light .bg-[#0f0f0f],
+html.theme-light .bg-[#121212],
+html.theme-light .bg-[#111111],
+html.theme-light .bg-[#181818],
+html.theme-light .bg-[#222222],
+html.theme-light .bg-[#272727] {
+  background-color: #ffffff !important;
+}
+
+html.theme-light .text-[#f1f1f1],
+html.theme-light .text-[#aaaaaa],
+html.theme-light .text-[#c0c0c0],
+html.theme-light .text-[#777],
+html.theme-light .text-[#999999],
+html.theme-light .text-[#bbbbbb] {
+  color: #1f2937 !important;
+}
+
+html.theme-light .border-[#272727],
+html.theme-light .border-[#333333],
+html.theme-light .border-[#3f3f3f] {
+  border-color: #d1d5db !important;
+}
+
+html.theme-light .hover\:bg-[#272727]:hover,
+html.theme-light .hover\:bg-[#272727] {
+  background-color: #e2e8f0 !important;
+}

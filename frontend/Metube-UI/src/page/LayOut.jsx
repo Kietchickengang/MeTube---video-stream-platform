@@ -5,6 +5,7 @@ import Navbar from "../components/NavigationBar";
 import Sidebar from "../components/SideBar";
 
 import HomePage from "./HomePage";
+import SearchPage from "./SearchPage";
 import VideoPage from "./VideoPage";
 import UploadPage from "./UploadPage";
 import SubscriptionsPage from "./SubscriptionsPage";
@@ -19,14 +20,16 @@ import LoginPage from "./LoginPage";
 import RegisterPage from "./RegisterPage";
 import ProfilePage from "./ProfilePage";
 
-const LayOut = () => {
+const LayOut = ({ theme }) => {
   const [showUploadPage, setShowUploadPage] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-  // keep sidebar visible on all pages when open
+  const rootClasses = theme === 'light'
+    ? 'bg-[#f8fafc] text-[#0f172a]'
+    : 'bg-[#0f0f0f] text-[#f1f1f1]';
 
   return (
-    <div className="bg-[#0f0f0f] min-h-screen text-[#f1f1f1]">
+    <div className={`${rootClasses} min-h-screen`}>
       <Navbar goToUploadPage={() => setShowUploadPage(true)} toggleSidebar={() => setIsSidebarOpen((prev) => !prev)} />
 
       <div className="flex pt-14">
@@ -35,6 +38,7 @@ const LayOut = () => {
         <main className={`flex-1 p-2 bg-[#0f0f0f] min-h-[calc(100vh-56px)] transition-all duration-300 ${isSidebarOpen ? "md:ml-60" : "md:ml-0"}`}>
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/search" element={<SearchPage />} />
             <Route path="/subscriptions" element={<SubscriptionsPage />} />
             <Route path="/history" element={<WatchHistoryPage />} />
             <Route path="/your-videos" element={<YourVideosPage />} />
