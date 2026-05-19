@@ -20,7 +20,7 @@ import LoginPage from "./LoginPage";
 import RegisterPage from "./RegisterPage";
 import ProfilePage from "./ProfilePage";
 
-const LayOut = () => {
+const LayOut = (rootClasses) => {
   const location = useLocation();
   const isVideoPage = location.pathname.startsWith("/video/");
   const [showUploadPage, setShowUploadPage] = useState(false);
