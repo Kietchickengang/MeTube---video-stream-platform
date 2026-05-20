@@ -21,19 +21,11 @@ import RegisterPage from "./RegisterPage";
 import ProfilePage from "./ProfilePage";
 import EditVideoPage from "./EditVideoPage";
 
-<<<<<<< HEAD
-const LayOut = ({ theme }) => {
-=======
 const LayOut = (rootClasses) => {
->>>>>>> d08ef5013af0da2f7230d4a015a2b31480d1c14c
   const location = useLocation();
   const isVideoPage = location.pathname.startsWith("/video/");
   const [showUploadPage, setShowUploadPage] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-
-  const rootClasses = theme === 'light'
-    ? 'bg-[#f8fafc] text-[#0f172a]'
-    : 'bg-[#0f0f0f] text-[#f1f1f1]';
 
   // Hide sidebar when click video
   useEffect(() => {

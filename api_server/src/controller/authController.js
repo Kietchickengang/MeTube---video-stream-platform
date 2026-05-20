@@ -95,10 +95,15 @@ export const login = async (req, res) => {
       expiresIn: "1d",
     });
 
+    res.cookie("metube_token", token, {
+      httpOnly: true,
+      sameSite: "lax",
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+    });
+
     return res.status(200).json({
       message: "Login success",
       user: payload,
-      token: token,
     });
   } catch (err) {
     return res.status(500).json({
@@ -112,6 +117,12 @@ export const login = async (req, res) => {
 // LOGOUT (JWT ONLY)
 // =======================
 export const logout = (req, res) => {
+  res.clearCookie("metube_token", {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: false,
+  });
+
   return res.status(200).json({
     message: "Logout success",
   });
