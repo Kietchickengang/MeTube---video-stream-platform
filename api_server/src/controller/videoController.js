@@ -231,3 +231,93 @@ export const getVideoById = async (req, res) => {
     });
   }
 };
+
+export const getMyVideos = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const videos = await findAll();
+
+    const myVideos = videos.filter(
+      (video) => video.userId?.toString() === userId,
+    );
+
+    res.status(200).json(myVideos);
+  } catch (err) {
+    console.error("Error getting user videos:", err);
+
+    res.status(500).json({
+      message: "Can not get user videos",
+    });
+  }
+};
+
+export const deleteVideo = async (req, res) => {
+  try {
+    const { videoId } = req.params;
+
+    const video = await findByVideoId(videoId);
+
+    if (!video) {
+      return res.status(404).json({
+        message: "Video not found",
+      });
+    }
+
+    if (video.userId.toString() !== req.user.id) {
+      return res.status(403).json({
+        message: "Forbidden",
+      });
+    }
+
+    await VideoDB_operation.deleteByVideoId(videoId);
+
+    return res.status(200).json({
+      message: "Deleted successfully",
+    });
+  } catch (err) {
+    console.error("Delete video error:", err);
+
+    return res.status(500).json({
+      message: "Delete failed",
+    });
+  }
+};
+
+export const updateVideoInfo = async (req, res) => {
+  try {
+    const { videoId } = req.params;
+
+    const { title, description } = req.body;
+
+    const video = await findByVideoId(videoId);
+
+    if (!video) {
+      return res.status(404).json({
+        message: "Can not find video",
+      });
+    }
+
+    // chỉ chủ video mới được sửa
+    if (video.userId.toString() !== req.user.id) {
+      return res.status(403).json({
+        message: "Permission denied",
+      });
+    }
+
+    await updateByVideoId(videoId, {
+      title,
+      description,
+    });
+
+    return res.status(200).json({
+      message: "Updated video successfully",
+    });
+  } catch (err) {
+    console.error("Update video failed:", err);
+
+    return res.status(500).json({
+      message: "Update failed",
+    });
+  }
+};

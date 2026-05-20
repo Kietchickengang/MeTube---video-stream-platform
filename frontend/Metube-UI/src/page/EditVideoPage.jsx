@@ -1,0 +1,125 @@
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+
+const api_port = 8000;
+
+const EditVideoPage = () => {
+  const { videoId } = useParams();
+
+  const navigate = useNavigate();
+
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadVideo = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:${api_port}/metube/videos/${videoId}`,
+          {
+            credentials: "include",
+          },
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || "Can not find video");
+        }
+
+        setTitle(data.title || "");
+        setDescription(data.description || "");
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (videoId) {
+      loadVideo();
+    }
+  }, [videoId]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const response = await fetch(
+        `http://localhost:${api_port}/metube/videos/${videoId}/edit`,
+        {
+          method: "PATCH",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            title,
+            description,
+          }),
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Update failed");
+      }
+
+      alert("Cập nhật thành công");
+
+      navigate("/your-videos");
+    } catch (err) {
+      console.error(err);
+
+      alert(err.message || "Cập nhật thất bại");
+    }
+  };
+
+  if (loading) {
+    return <div className="text-white p-6">Đang tải...</div>;
+  }
+
+  return (
+    <div className="max-w-3xl mx-auto p-6 text-white">
+      <h1 className="text-3xl font-bold mb-6">Chỉnh sửa video</h1>
+
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        {/* TITLE */}
+        <div>
+          <label className="block mb-2 text-sm text-[#aaa]">Tiêu đề</label>
+
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="w-full bg-[#1f1f1f] border border-[#333] rounded-xl p-4 outline-none"
+          />
+        </div>
+
+        {/* DESCRIPTION */}
+        <div>
+          <label className="block mb-2 text-sm text-[#aaa]">Mô tả</label>
+
+          <textarea
+            rows={8}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="w-full bg-[#1f1f1f] border border-[#333] rounded-xl p-4 outline-none resize-none"
+          />
+        </div>
+
+        <button
+          type="submit"
+          className="bg-[#3ea6ff] hover:bg-[#65b8ff] text-black font-semibold py-3 rounded-xl transition"
+        >
+          Lưu thay đổi
+        </button>
+      </form>
+    </div>
+  );
+};
+
+export default EditVideoPage;
