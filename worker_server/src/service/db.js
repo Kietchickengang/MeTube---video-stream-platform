@@ -19,28 +19,34 @@ const sampleTest = {
   resolution: "720p",
   videoSize: 5000000,
   mimeType: "video/mp4",
+  views: 0,
   unexpected_err: "",
   retryCnt: 0,
   createdAt: new Date(),
-  updatedAt: new Date()
-}
+  updatedAt: new Date(),
+};
 
 // Test insert data into MongoDB
-export const testDB = async() => await videos.insertOne(sampleTest);
+export const testDB = async () => await videos.insertOne(sampleTest);
 
 // Set up database operations
 export const VideoDB_operation = {
   // CREATE
-  async create(data) { return videos.insertOne(createTimestamps(data)); 
+  async create(data) {
+    return videos.insertOne(createTimestamps(data));
   },
 
   // FIND
-  async findAll() { return await videos.find({}).sort({ createdAt: -1 }).toArray(); },
-
-  async findById(id) { return videos.findOne({ _id: new ObjectId(id) }); 
+  async findAll() {
+    return await videos.find({}).sort({ createdAt: -1 }).toArray();
   },
 
-  async findByVideoId(videoId) { return videos.findOne({ videoId }); 
+  async findById(id) {
+    return videos.findOne({ _id: new ObjectId(id) });
+  },
+
+  async findByVideoId(videoId) {
+    return videos.findOne({ videoId });
   },
 
   // UPDATE
@@ -50,17 +56,24 @@ export const VideoDB_operation = {
       {
         $set: data,
         $currentDate: { updatedAt: true },
-      }
+      },
     );
   },
 
   async updateByVideoId(videoId, data) {
+    const hasOperator = Object.keys(data).some((key) => key.startsWith("$"));
+
     return videos.updateOne(
       { videoId },
-      {
-        $set: data,
-        $currentDate: { updatedAt: true },
-      }
+      hasOperator
+        ? {
+            ...data,
+            $currentDate: { updatedAt: true },
+          }
+        : {
+            $set: data,
+            $currentDate: { updatedAt: true },
+          },
     );
   },
 
@@ -70,11 +83,12 @@ export const VideoDB_operation = {
       {
         $set: { status },
         $currentDate: { updatedAt: true },
-      }
+      },
     );
   },
 
   // DELETE
-  async deleteByVideoId(videoId){ return videos.deleteOne({videoId: videoId}); 
+  async deleteByVideoId(videoId) {
+    return videos.deleteOne({ videoId: videoId });
   },
 };
