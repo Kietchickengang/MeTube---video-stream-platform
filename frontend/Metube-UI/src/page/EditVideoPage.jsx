@@ -17,7 +17,7 @@ const EditVideoPage = () => {
     const loadVideo = async () => {
       try {
         const response = await fetch(
-          `http://localhost:${api_port}/metube/videos/${videoId}`,
+          `http://localhost:${api_port}/metube/${videoId}/edit`,
           {
             credentials: "include",
           },
@@ -48,7 +48,7 @@ const EditVideoPage = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:${api_port}/metube/videos/${videoId}/edit`,
+        `http://localhost:${api_port}/metube/${videoId}/edit`,
         {
           method: "PATCH",
           credentials: "include",

@@ -52,7 +52,7 @@ const YourVideosPage = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:${api_port}/metube/videos/${videoId}`,
+        `http://localhost:${api_port}/metube/${videoId}`,
         {
           method: "DELETE",
           credentials: "include",
