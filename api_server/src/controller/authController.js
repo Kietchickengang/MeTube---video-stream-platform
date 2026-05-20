@@ -1,17 +1,21 @@
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import { UserService } from '../service/userService.js';
-import { validateEmail, validatePassword, validateName } from '../util/validation.js';
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { UserService } from "../service/userService.js";
+import {
+  validateEmail,
+  validatePassword,
+  validateName,
+} from "../util/validation.js";
 
-const JWT_SECRET = process.env.JWT_SECRET || 'metube_secret_key';
-const COOKIE_NAME = 'metube_token';
-const COOKIE_MAX_AGE = 24 * 60 * 60 * 1000; // 1 day
+const JWT_SECRET = process.env.JWT_SECRET || "metube_secret_key";
 
+// =======================
+// REGISTER
+// =======================
 export const register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    // Validate inputs
     const nameValidation = validateName(name);
     if (!nameValidation.valid) {
       return res.status(400).json({ message: nameValidation.message });
@@ -29,40 +33,56 @@ export const register = async (req, res) => {
 
     const existingUser = await UserService.getByEmail(email.toLowerCase());
     if (existingUser) {
-      return res.status(409).json({ message: 'Email đã được dùng. Vui lòng sử dụng email khác.' });
+      return res.status(409).json({ message: "Email already exists" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+
     await UserService.createUser({
       name: name.trim(),
       email: email.toLowerCase(),
       passwordHash: hashedPassword,
-      role: 'user',
+      role: "user",
     });
 
-    return res.status(201).json({ message: 'Tạo tài khoản thành công.' });
+    return res.status(201).json({
+      message: "Register success",
+    });
   } catch (err) {
-    console.error('Register error:', err);
-    return res.status(500).json({ message: 'Lỗi máy chủ khi tạo tài khoản.', error: err.message });
+    return res.status(500).json({
+      message: "Register failed",
+      error: err.message,
+    });
   }
 };
 
+// =======================
+// LOGIN (JWT ONLY)
+// =======================
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ message: 'Vui lòng cung cấp email và mật khẩu.' });
+      return res.status(400).json({
+        message: "Email and password required",
+      });
     }
 
     const user = await UserService.getByEmail(email.toLowerCase());
+
     if (!user) {
-      return res.status(401).json({ message: 'Email hoặc mật khẩu không đúng.' });
+      return res.status(401).json({
+        message: "Invalid credentials",
+      });
     }
 
-    const passwordIsValid = await bcrypt.compare(password, user.passwordHash);
-    if (!passwordIsValid) {
-      return res.status(401).json({ message: 'Email hoặc mật khẩu không đúng.' });
+    const isValid = await bcrypt.compare(password, user.passwordHash);
+
+    if (!isValid) {
+      return res.status(401).json({
+        message: "Invalid credentials",
+      });
     }
 
     const payload = {
@@ -71,84 +91,101 @@ export const login = async (req, res) => {
       name: user.name,
     };
 
-    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '1d' });
-
-    req.session.user = payload;
-
-    res.cookie(COOKIE_NAME, token, {
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: COOKIE_MAX_AGE,
+    const token = jwt.sign(payload, JWT_SECRET, {
+      expiresIn: "1d",
     });
 
-    return res.status(200).json({ message: 'Đăng nhập thành công.', user: payload });
+    return res.status(200).json({
+      message: "Login success",
+      user: payload,
+      token: token,
+    });
   } catch (err) {
-    console.error('Login error:', err);
-    return res.status(500).json({ message: 'Lỗi máy chủ khi đăng nhập.', error: err.message });
+    return res.status(500).json({
+      message: "Login failed",
+      error: err.message,
+    });
   }
 };
 
+// =======================
+// LOGOUT (JWT ONLY)
+// =======================
 export const logout = (req, res) => {
-  req.session.destroy((err) => {
-    res.clearCookie(COOKIE_NAME);
-    if (err) {
-      console.error('Logout error:', err);
-      return res.status(500).json({ message: 'Không thể đăng xuất.' });
-    }
-
-    return res.status(200).json({ message: 'Đăng xuất thành công.' });
+  return res.status(200).json({
+    message: "Logout success",
   });
 };
 
+// =======================
+// GET PROFILE (JWT ONLY)
+// =======================
 export const getProfile = (req, res) => {
-  const user = req.session?.user;
-  if (!user) {
-    return res.status(401).json({ message: 'Chưa đăng nhập.' });
-  }
+  try {
+    const token = req.cookies?.metube_token;
 
-  return res.status(200).json({ user });
+    if (!token) {
+      return res.status(401).json({
+        message: "Not authenticated",
+      });
+    }
+
+    const decoded = jwt.verify(token, JWT_SECRET);
+
+    return res.status(200).json({
+      user: decoded,
+    });
+  } catch (err) {
+    return res.status(401).json({
+      message: "Invalid token",
+    });
+  }
 };
 
+// =======================
+// CHANGE PASSWORD (JWT ONLY)
+// =======================
 export const changePassword = async (req, res) => {
   try {
-    const user = req.session?.user;
-    if (!user) {
-      return res.status(401).json({ message: 'Chưa đăng nhập.' });
+    const token = req.cookies?.metube_token; // 👈 FIX
+
+    if (!token) {
+      return res.status(401).json({
+        message: "Not authenticated",
+      });
     }
+
+    const decoded = jwt.verify(token, JWT_SECRET);
 
     const { oldPassword, newPassword } = req.body;
 
-    const oldPasswordValidation = validatePassword(oldPassword);
-    if (!oldPasswordValidation.valid) {
-      return res.status(400).json({ message: oldPasswordValidation.message });
-    }
+    const userData = await UserService.getUserById(decoded.id);
 
-    const newPasswordValidation = validatePassword(newPassword);
-    if (!newPasswordValidation.valid) {
-      return res.status(400).json({ message: newPasswordValidation.message });
-    }
-
-    if (oldPassword === newPassword) {
-      return res.status(400).json({ message: 'Mật khẩu mới không được giống mật khẩu cũ.' });
-    }
-
-    const userData = await UserService.getUserById(user.id);
     if (!userData) {
-      return res.status(404).json({ message: 'Người dùng không tồn tại.' });
+      return res.status(404).json({
+        message: "User not found",
+      });
     }
 
-    const passwordIsValid = await bcrypt.compare(oldPassword, userData.passwordHash);
-    if (!passwordIsValid) {
-      return res.status(401).json({ message: 'Mật khẩu cũ không đúng.' });
+    const isValid = await bcrypt.compare(oldPassword, userData.passwordHash);
+
+    if (!isValid) {
+      return res.status(401).json({
+        message: "Old password incorrect",
+      });
     }
 
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-    await UserService.updatePassword(user.id, hashedPassword);
+    const hashed = await bcrypt.hash(newPassword, 10);
 
-    return res.status(200).json({ message: 'Đổi mật khẩu thành công.' });
+    await UserService.updatePassword(decoded.id, hashed);
+
+    return res.status(200).json({
+      message: "Password changed successfully",
+    });
   } catch (err) {
-    console.error('Change password error:', err);
-    return res.status(500).json({ message: 'Lỗi máy chủ khi đổi mật khẩu.', error: err.message });
+    return res.status(500).json({
+      message: "Change password failed",
+      error: err.message,
+    });
   }
 };

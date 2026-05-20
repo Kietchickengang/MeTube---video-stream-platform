@@ -1,32 +1,44 @@
-import express from 'express';
+import express from "express";
 
-import { 
-    generatePresignedURL, confirmUpload, initStatusDB, checkStatusUpload, updateSubmitDB, 
-    callWorker, uploadThumbS3, getAllVideos, getVideoById
- } from '../controller/videoController.js';
+import {
+  generatePresignedURL,
+  confirmUpload,
+  initStatusDB,
+  checkStatusUpload,
+  updateSubmitDB,
+  callWorker,
+  uploadThumbS3,
+  getAllVideos,
+  getVideoById,
+} from "../controller/videoController.js";
 
-// --- Note: Because vietnix key's format is "videos/{videoId}""
-// ---       so it need encrypting before requesting api (route confirmUpload)
-// ---       or else it will trigger error because the splash ("/")
+import { isAuthenticated } from "../middleware/auth.js";
 
 const router = express.Router();
 
-router.post("/presigned-URL", generatePresignedURL);
+// upload flow requires login
+router.post("/presigned-URL", isAuthenticated, generatePresignedURL);
 
-router.post("/upFile/presigned-URL", uploadThumbS3);
+router.post("/upFile/presigned-URL", isAuthenticated, uploadThumbS3);
 
-router.post("/:videoId/cnf", confirmUpload);
+// confirm upload requires login
+router.post("/:videoId/cnf", isAuthenticated, confirmUpload);
 
-router.post("/:videoId/initVidDB", initStatusDB);
+// initialize video in DB requires login
+router.post("/:videoId/initVidDB", isAuthenticated, initStatusDB);
 
-router.post("/:videoId/wrkJobs", callWorker);
+// worker trigger requires login
+router.post("/:videoId/wrkJobs", isAuthenticated, callWorker);
 
-router.get("/:videoId/upStatus", checkStatusUpload);
+// status check requires login (optional but recommended)
+router.get("/:videoId/upStatus", isAuthenticated, checkStatusUpload);
 
+// public routes (can be viewed without login)
 router.get("/videos", getAllVideos);
 
 router.get("/videos/:videoId", getVideoById);
 
-router.patch("/:videoId/goPublish", updateSubmitDB);
+// update requires login
+router.patch("/:videoId/goPublish", isAuthenticated, updateSubmitDB);
 
 export default router;

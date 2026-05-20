@@ -1,23 +1,20 @@
-import jwt from 'jsonwebtoken';
+import jwt from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET || 'metube_secret_key';
+const JWT_SECRET = process.env.JWT_SECRET || "metube_secret_key";
 
 export const isAuthenticated = (req, res, next) => {
-  const token = req.cookies?.metube_token || req.headers.authorization?.split(' ')[1];
+  const token = req.cookies?.metube_token;
+  console.log("COOKIE TOKEN:", req.cookies?.metube_token);
   if (!token) {
-    return res.status(401).json({ message: 'Yêu cầu đăng nhập.' });
+    return res.status(401).json({ message: "Unauthorized" });
   }
 
   try {
     const payload = jwt.verify(token, JWT_SECRET);
-    if (!req.session?.user || req.session.user.id !== payload.id) {
-      return res.status(401).json({ message: 'Phiên không hợp lệ. Vui lòng đăng nhập lại.' });
-    }
+    req.user = payload;
 
-    req.user = req.session.user;
-    return next();
+    next();
   } catch (err) {
-    console.error('Token validation error:', err);
-    return res.status(401).json({ message: 'JWT không hợp lệ hoặc đã hết hạn.' });
+    return res.status(401).json({ message: "Invalid or expired token" });
   }
 };
