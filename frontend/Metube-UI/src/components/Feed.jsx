@@ -38,7 +38,7 @@ const Feed = () => {
   return (
     <div className="min-h-screen bg-[#0f0f0f] text-white mt-0 px-2">
       {/* Tabs */}
-      <div className="mb-3 flex gap-3 overflow-x-auto pb-2 no-scrollbar">
+      <div className="mb-3 flex gap-1.5 overflow-x-auto pb-2 no-scrollbar">
         {[
           "Tất cả",
           "Âm nhạc",
@@ -63,7 +63,7 @@ const Feed = () => {
       </div>
 
       {/* Video Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-4 gap-y-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-2 gap-y-3">
         {videos.map((video) => (
           <Link
             to={`/video/${video.videoId}`}
@@ -79,7 +79,7 @@ const Feed = () => {
               />
 
               {video.duration && (
-                <div className="absolute bottom-2 right-2 bg-black/80 text-white text-sm font-medium px-2 py-0.5 rounded-pill group-hover:opacity-0">
+                <div className="absolute bottom-2 right-2 bg-black/50 text-white text-sm font-medium px-2 py-0.5 rounded-md group-hover:opacity-0">
                   {displayDuration(video.duration)}
                 </div>
               )}
@@ -89,7 +89,7 @@ const Feed = () => {
             <div className="flex gap-3 px-1">
               <img
                 src="https://tinyurl.com/277pc7ru"
-                alt={video?.userId?.name || "Unknown User"}
+                alt={"UIT project"}
                 className="w-9 h-9 rounded-full object-cover flex-shrink-0"
               />
 
@@ -98,15 +98,13 @@ const Feed = () => {
                   {video.title}
                 </h3>
 
-                <div className="mt-1 text-sm text-[#aaaaaa] leading-none flex items-center flex-wrap gap-x-2">
-                  <p className="hover:text-white transition">
-                    {video?.userId?.name || "Unknown User"}
+                <div className="text-md text-[#aaaaaa] leading-none flex flex-col flex-wrap gap-y-1">
+                  <p className="hover:text-white transition mb-1">
+                    {video?.userId.name || "Unknown User"}
                   </p>
 
                   <p className="flex items-center flex-wrap gap-x-1">
-                    <Play size={15} />
-                    {video.views || 0} views &nbsp;&nbsp;&nbsp;
-                    {timeAgo(video.createdAt)}
+                    {video.views || 0} view{video.views > 1? 's' : ''} • {timeAgo(video.createdAt)}
                   </p>
                 </div>
               </div>

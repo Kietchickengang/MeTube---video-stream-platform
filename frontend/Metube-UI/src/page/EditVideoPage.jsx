@@ -86,36 +86,42 @@ const EditVideoPage = () => {
     <div className="max-w-3xl mx-auto p-6 text-white">
       <h1 className="text-3xl font-bold mb-6">Chỉnh sửa video</h1>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-2">
         {/* TITLE */}
         <div>
-          <label className="block mb-2 text-sm text-[#aaa]">Tiêu đề</label>
+          <label className="block mb-2 text-lg text-[#aaa]">Tiêu đề</label>
 
           <input
+            autoComplete="false"
+            spellCheck="false"
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full bg-[#1f1f1f] border border-[#333] rounded-xl p-4 outline-none"
+            className="w-full bg-[#1f1f1f] border-none rounded-xl p-2 outline-none"
+            maxLength={100}
           />
         </div>
 
         {/* DESCRIPTION */}
         <div>
-          <label className="block mb-2 text-sm text-[#aaa]">Mô tả</label>
-
+          <label className="block mb-2 text-lg text-[#aaa]">Mô tả</label>
           <textarea
+            autoComplete="false"
+            spellCheck="false"
             rows={8}
             value={description}
+            maxLength={5000}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full bg-[#1f1f1f] border border-[#333] rounded-xl p-4 outline-none resize-none"
+            className="w-full bg-[#1f1f1f] border-none rounded-xl p-4 outline-none resize-none"
           />
         </div>
 
+
         <button
           type="submit"
-          className="bg-[#3ea6ff] hover:bg-[#65b8ff] text-black font-semibold py-3 rounded-xl transition"
+          className="ml-auto btn btn-danger hover:bg-[#65b8ff] text-white font-semibold px-3 py-2 rounded-xl transition"
         >
-          Lưu thay đổi
+          Save change
         </button>
       </form>
     </div>

@@ -3,7 +3,7 @@ import UploadWizard from "../components/UploadForm";
 import { useAuth } from "../context/AuthContext";
 import { notifyError } from "../helper/popUp.js";
 import { Toaster } from "react-hot-toast";
-import { Lock } from "lucide-react";
+import { LockKeyhole } from "lucide-react";
 
 const UploadPage = ({ isClose }) => {
   const { user, loading } = useAuth();
@@ -34,7 +34,7 @@ const UploadPage = ({ isClose }) => {
         <Toaster position="top-right" reverseOrder={false} />
 
         <div
-          className="card bg-dark text-white shadow-lg text-center py-5 border-secondary"
+          className="card bg-dark text-white shadow-lg text-center py-5 border-none"
           style={{
             minHeight: "450px",
             maxWidth: "600px",
@@ -44,11 +44,11 @@ const UploadPage = ({ isClose }) => {
         >
           <div className="card-body d-flex flex-column justify-content-center align-items-center gap-4 p-4">
             <div className="p-4 bg-danger bg-opacity-10 rounded-circle text-danger mb-2">
-              <Lock size={48} />
+              <LockKeyhole size={48} />
             </div>
 
             <div>
-              <h3 className="fw-bold mb-2">Tính năng giới hạn</h3>
+              <h3 className="fw-bold mb-3">Tính năng giới hạn</h3>
               <p className="text-secondary px-3">
                 Bạn cần đăng nhập trước khi tải video lên hệ thống.
               </p>
@@ -57,7 +57,7 @@ const UploadPage = ({ isClose }) => {
             <div className="d-flex gap-3 mt-3">
               <button
                 type="button"
-                className="btn btn-outline-secondary px-4 py-2"
+                className="btn btn-outline-warning px-4 py-2"
                 onClick={isClose}
               >
                 Quay lại

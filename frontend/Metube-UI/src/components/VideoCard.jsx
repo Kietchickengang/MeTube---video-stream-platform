@@ -29,14 +29,15 @@ const VideoCard = ({ video, isCurrent, theaterMode = false }) => {
 
       {/* Info */}
       <div className="flex flex-col overflow-hidden inter leading-none">
-        <h3 className="text-[16px] text-left font-semibold text-white leading-normal line-clamp-2 tracking-tight">
-          {formatOut(video.title, 40)}
+        <h3 className="text-[16px] text-left font-semibold text-white leading-tight line-clamp-2 tracking-tight">
+          {formatOut(video.title, 50)}
         </h3>
-        <p className="text-[12px] text-[#aaa] mb-[7px]">
+        <p className="text-xs text-[#aaa] mb-[4px] font-semibold">
           {video.channelName || "K13T DU0N9"}
         </p>
-        <div className="text-[12px] text-[#aaa] flex flex-row gap-x-3 items-center">
+        <div className="text-xs text-[#aaa] flex flex-row gap-x-2">
           <span>{miniView(video.views || 8386)}</span>
+          <span>•</span>
           <span>{timeAgo(video.createdAt)}</span>
         </div>
       </div>

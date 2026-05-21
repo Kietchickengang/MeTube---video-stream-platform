@@ -34,13 +34,19 @@ const LayOut = (rootClasses) => {
     }
   }, [isVideoPage]);
 
+  // Hide sidebar when click video
+  useEffect(() => { 
+    if(isVideoPage) { 
+      setIsSidebarOpen(false); 
+    } 
+  }, [isVideoPage]);
+
   return (
     <div className={`${rootClasses} min-h-screen`}>
       <Navbar
         goToUploadPage={() => setShowUploadPage(true)}
         toggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
       />
-
       <div className="flex pt-14">
         {/* ===== HOMEPAGE SIDEBAR ===== */}
         {!isVideoPage && isSidebarOpen && (

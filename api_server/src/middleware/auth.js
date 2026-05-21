@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
+import "dotenv/config";
 
-const JWT_SECRET = process.env.JWT_SECRET || "metube_secret_key";
+const JWT_SECRET = process.env.JWT_SECRET || "toiyeuuit";
 
 export const isAuthenticated = (req, res, next) => {
   const token = req.cookies?.metube_token;
@@ -14,7 +15,8 @@ export const isAuthenticated = (req, res, next) => {
     req.user = payload;
 
     next();
-  } catch (err) {
+  } 
+  catch (err) {
     return res.status(401).json({ message: "Invalid or expired token" });
   }
 };

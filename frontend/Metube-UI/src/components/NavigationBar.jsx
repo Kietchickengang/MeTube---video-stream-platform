@@ -49,6 +49,8 @@ const Navbar = ({ goToUploadPage, toggleSidebar }) => {
           <div className="flex items-center w-full bg-[#121212] border-none rounded-l-full px-4 py-2 focus-within:border-[#1c62b9] focus-within:ml-[-1px] transition-all">
             <Search size={18} className="text-[#aaaaaa] mr-3 hidden focus-within:block" />
             <input 
+              autoComplete="false"
+              spellCheck="false"
               type="text" 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -98,13 +100,13 @@ const Navbar = ({ goToUploadPage, toggleSidebar }) => {
           </div>
         ) : (
           <button
-            className="p-1.5 border-none text-[#FFFFFF] rounded-full flex items-center gap-2 px-3 hover:bg-[#263850] hover:border-transparent transition ml-2"
+            className="group p-1.5 border-none text-[#FFFFFF] rounded-full flex items-center gap-2 px-3 hover:bg-[#263850] hover:border-transparent transition ml-2"
             onClick={() => navigate('/login')}
           >
-            <div className="border-2 border-[#999999] rounded-full p-0.5">
-              <User size={20} strokeWidth={3}/>
+            <div className="border-2 border-[#007FFF] rounded-full p-0.5 group-hover:border-[#FF3366]">
+              <User size={20} strokeWidth={3} className="text-[#007FFF] group-hover:text-[#FF3366]"/>
             </div>
-            <span className="text-[16px] font-bold hidden md:inline hover:no-underline hover:!text-[#FF3366]">Đăng nhập</span>
+            <span className="text-[16px] text-[#007FFF] font-bold hidden md:inline hover:no-underline group-hover:text-[#FF3366]">Đăng nhập</span>
           </button>
         )}
       </div>

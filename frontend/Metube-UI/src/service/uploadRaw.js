@@ -55,7 +55,8 @@ export const uploadS3 = async (file, progress) => {
     });
 
     return encryptKey;
-  } catch (err) {
+  } 
+  catch (err) {
     console.error("Error when uploading video to S3: ", err);
     throw err;
   }

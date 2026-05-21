@@ -83,13 +83,13 @@ const YourVideosPage = () => {
       <div className="max-w-6xl mx-auto px-2 py-4">
         <h1 className="text-3xl font-bold mb-3">Video của bạn</h1>
 
-        <p className="text-sm text-[#c0c0c0] leading-relaxed mb-4">
+        <p className="text-md text-[#c0c0c0] leading-relaxed mb-4">
           Vui lòng đăng nhập để xem những video bạn đã tải lên.
         </p>
 
         <a
           href="/login"
-          className="inline-block rounded-full bg-[#1c62b9] px-5 py-3 text-white"
+          className="inline-block rounded-lg bg-[#1c62b9] px-5 py-2.5 text-white no-underline"
         >
           Đăng nhập
         </a>
@@ -99,18 +99,18 @@ const YourVideosPage = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-2 py-4">
-      <h1 className="text-3xl font-bold mb-3">Video của bạn</h1>
+      <h1 className="ml-2 text-3xl font-bold mb-3">Video của bạn</h1>
 
-      <p className="text-sm text-[#c0c0c0] leading-relaxed mb-6">
+      <p className="ml-2 text-md text-[#c0c0c0] leading-relaxed mb-6">
         Quản lý các video bạn đã tải lên và xem trạng thái xử lý ở đây.
       </p>
 
       {loading ? (
-        <div className="rounded-3xl border border-[#272727] bg-[#121212] p-6 text-[#c0c0c0]">
+        <div className="rounded-3xl border-none bg-[#121212] p-6 text-[#c0c0c0]">
           Đang tải video...
         </div>
       ) : videos.length === 0 ? (
-        <div className="rounded-3xl border border-[#272727] bg-[#121212] p-6 text-[#c0c0c0]">
+        <div className="rounded-3xl border-none bg-[#121212] p-6 text-[#c0c0c0]">
           Bạn chưa tải lên video nào.
         </div>
       ) : (
@@ -118,24 +118,24 @@ const YourVideosPage = () => {
           {videos.map((video) => (
             <div
               key={video.videoId}
-              className="bg-[#121212] rounded-2xl overflow-hidden border border-[#272727]"
+              className="bg-[#121212] rounded-2xl overflow-hidden border-none p-3"
             >
               <VideoCard video={video} />
 
               {/* ACTION BUTTONS */}
-              <div className="flex gap-3 p-4">
+              <div className="flex gap-2 mt-2">
                 <button
                   onClick={() => handleEdit(video.videoId)}
-                  className="flex-1 bg-[#272727] hover:bg-[#3a3a3a] text-white py-2 rounded-xl transition"
+                  className="flex-1 btn btn-warning hover:bg-[#3a3a3a] text-white rounded-xl transition"
                 >
-                  Sửa
+                  Edit
                 </button>
 
                 <button
                   onClick={() => handleDelete(video.videoId)}
-                  className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 rounded-xl transition"
+                  className="flex-1 btn btn-danger hover:bg-red-700 text-white rounded-xl transition"
                 >
-                  Xóa
+                  Delete
                 </button>
               </div>
             </div>

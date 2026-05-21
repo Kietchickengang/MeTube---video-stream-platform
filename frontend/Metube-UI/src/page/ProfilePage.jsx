@@ -71,7 +71,7 @@ const ProfilePage = () => {
   }
 
   return (
-    <div className="mt-12 relative mx-auto max-w-sm overflow-hidden rounded-[32px] border-none bg-[#0f0f0f] p-8 shadow-2xl shadow-black/80 font-inter select-none transition-all duration-300">
+    <div className="mt-12 relative mx-auto max-w-lg overflow-hidden rounded-[32px] border-none bg-[#0f0f0f] p-8 shadow-2xl shadow-black/80 font-inter select-none transition-all duration-300">
       {/* Ambient Radial Glow (Hào quang mịn, sâu hơn) */}
       <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-[#3ea6ff]/5 blur-[80px] pointer-events-none"></div>
       <div className="absolute -left-16 -bottom-16 h-48 w-48 rounded-full bg-red-500/[0.03] blur-[80px] pointer-events-none"></div>
@@ -131,13 +131,13 @@ const ProfilePage = () => {
           <form onSubmit={handleChangePassword} className="space-y-4 pt-2 mb-4 animate-fade-in text-left">
             {/* Old Password */}
             <div className="relative flex items-center group">
-              <Lock size={14} className="absolute left-4 text-zinc-600 transition-colors group-focus-within:text-[#3ea6ff]" />
+              <Lock size={20} className="absolute left-4 text-zinc-600 transition-colors group-focus-within:text-[#3ea6ff]" />
               <input
                 type={showOldPass ? "text" : "password"}
                 value={oldPassword}
                 onChange={(e) => setOldPassword(e.target.value)}
-                placeholder="Mật khẩu hiện tại"
-                className="w-full rounded-2xl border-none bg-zinc-900/30 pl-10 pr-12 py-3.5 text-xs font-medium text-zinc-200 placeholder-zinc-600 transition-all duration-200 outline-none focus:bg-zinc-900/60 focus:ring-1 focus:ring-[#3ea6ff]/30"
+                placeholder="Current password"
+                className="ml-2 w-full rounded-2xl border-none bg-zinc-900/30 pl-10 pr-12 py-3.5 text-md font-medium text-zinc-200 placeholder-zinc-600 transition-all duration-200 outline-none focus:bg-zinc-900/60 focus:ring-1 focus:ring-[#3ea6ff]/30"
                 disabled={loading}
               />
               <button
@@ -145,19 +145,19 @@ const ProfilePage = () => {
                 onClick={() => setShowOldPass(!showOldPass)}
                 className="absolute right-4 text-zinc-600 hover:text-zinc-400 transition-colors"
               >
-                {showOldPass ? <EyeOff size={14} /> : <Eye size={14} />}
+                {showOldPass ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
 
             {/* New Password */}
             <div className="relative flex items-center group">
-              <Lock size={14} className="absolute left-4 text-zinc-600 transition-colors group-focus-within:text-[#3ea6ff]" />
+              <Lock size={20} className="absolute left-4 text-zinc-600 transition-colors group-focus-within:text-[#3ea6ff]" />
               <input
                 type={showNewPass ? "text" : "password"}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Mật khẩu mới (tối thiểu 6 ký tự)"
-                className="w-full rounded-2xl border-none bg-zinc-900/30 pl-10 pr-12 py-3.5 text-xs font-medium text-zinc-200 placeholder-zinc-600 transition-all duration-200 outline-none focus:bg-zinc-900/60 focus:ring-1 focus:ring-[#3ea6ff]/30"
+                placeholder="New password (Minimum 6 characters)"
+                className="ml-2 w-full rounded-2xl border-none bg-zinc-900/30 pl-10 pr-12 py-3.5 text-md font-medium text-zinc-200 placeholder-zinc-600 transition-all duration-200 outline-none focus:bg-zinc-900/60 focus:ring-1 focus:ring-[#3ea6ff]/30"
                 disabled={loading}
               />
               <button
@@ -165,19 +165,19 @@ const ProfilePage = () => {
                 onClick={() => setShowNewPass(!showNewPass)}
                 className="absolute right-4 text-zinc-600 hover:text-zinc-400 transition-colors"
               >
-                {showNewPass ? <EyeOff size={14} /> : <Eye size={14} />}
+                {showNewPass ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
 
             {/* Confirm Password */}
             <div className="relative flex items-center group">
-              <Lock size={14} className="absolute left-4 text-zinc-600 transition-colors group-focus-within:text-[#3ea6ff]" />
+              <Lock size={20} className="absolute left-4 text-zinc-600 transition-colors group-focus-within:text-[#3ea6ff]" />
               <input
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Xác nhận lại mật khẩu mới"
-                className="w-full rounded-2xl border-none bg-zinc-900/30 pl-10 pr-4 py-3.5 text-xs font-medium text-zinc-200 placeholder-zinc-600 transition-all duration-200 outline-none focus:bg-zinc-900/60 focus:ring-1 focus:ring-[#3ea6ff]/30"
+                placeholder="Confirm new password"
+                className="ml-2 w-full rounded-2xl border-none bg-zinc-900/30 pl-10 pr-4 py-3.5 text-md font-medium text-zinc-200 placeholder-zinc-600 transition-all duration-200 outline-none focus:bg-zinc-900/60 focus:ring-1 focus:ring-[#3ea6ff]/30"
                 disabled={loading}
               />
             </div>
@@ -197,20 +197,20 @@ const ProfilePage = () => {
             )}
 
             {/* Form Control Buttons */}
-            <div className="flex gap-2 pt-1">
+            <div className="flex gap-5 pt-1">
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 rounded-xl bg-zinc-100 py-3 text-xs font-bold uppercase tracking-wider text-black transition-all duration-200 hover:bg-white active:scale-95 disabled:opacity-40"
+                className="btn btn-success flex-1 rounded-xl bg-zinc-100 py-2.5 text-md font-bold uppercase tracking-wide text-white transition-all duration-200 active:scale-95 disabled:opacity-40"
               >
-                {loading ? '...' : 'Xác nhận'}
+                {loading ? '...' : 'OK'}
               </button>
               <button
                 type="button"
                 onClick={() => setShowChangePassword(false)}
-                className="flex-1 rounded-xl bg-zinc-900/60 py-3 text-xs font-bold uppercase tracking-wider text-zinc-400 transition-all duration-200 hover:bg-zinc-900 hover:text-zinc-200 active:scale-95"
+                className="btn btn-danger flex-1 rounded-xl bg-zinc-900/60 py-2.5 text-sm font-bold uppercase tracking-wide text-zinc-400 transition-all duration-200 hover:bg-zinc-900 hover:text-zinc-200 active:scale-95"
               >
-                Hủy bỏ
+                Cancel
               </button>
             </div>
           </form>

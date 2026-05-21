@@ -15,20 +15,20 @@ const SubscriptionsPage = () => {
       <div className="max-w-6xl mx-auto px-2 py-4">
         <h1 className="text-3xl font-bold mb-3">Kênh đăng ký</h1>
         <p className="text-sm text-[#c0c0c0] leading-relaxed mb-4">Vui lòng đăng nhập để xem kênh đăng ký của bạn.</p>
-        <a href="/login" className="inline-block rounded-full bg-[#1c62b9] px-5 py-3 text-white">Đăng nhập</a>
+        <a href="/login" className="inline-block rounded-lg bg-[#1c62b9] px-5 py-2.5 text-white no-underline">Đăng nhập</a>
       </div>
     );
   }
 
   return (
     <div className="max-w-6xl mx-auto px-2 py-4">
-      <h1 className="text-3xl font-bold mb-3">Kênh đăng ký</h1>
-      <p className="text-sm text-[#c0c0c0] leading-relaxed mb-6">
+      <h1 className="ml-2 text-3xl font-bold mb-3">Kênh đăng ký</h1>
+      <p className="ml-2 text-md text-[#c0c0c0] leading-relaxed mb-6">
         Nội dung từ các kênh bạn đăng ký sẽ hiển thị ở đây.
       </p>
 
       {subscriptions.length === 0 ? (
-        <div className="rounded-3xl border border-[#272727] bg-[#121212] p-6 text-[#c0c0c0]">
+        <div className="rounded-3xl border-none bg-[#121212] p-6 text-[#c0c0c0]">
           Bạn chưa đăng ký kênh nào. Hãy mở một video và nhấn Subscribe để lưu kênh.
         </div>
       ) : (
