@@ -10,6 +10,7 @@ import { useAuth } from "../context/AuthContext.jsx";
 import { addWatchHistory, isSubscribed, toggleSubscription } from "../service/userDataService.js";
 import { formatOut } from "../../../../worker_server/src/util/helper.js";
 import { displayTimeFromDB } from "../utils/cal_in4.js";
+import { SubscribeBtn } from "../utils/renderSth.jsx";
 
 const api_port = 8000;
 const hostPath = `http://localhost:${api_port}/metube/videos`;
@@ -102,8 +103,8 @@ const VideoPage = () => {
 
   const VideoDetails = () => (
     <>
-      <h1 className="text-xl leading-none tracking-none font-bold mb-0">{video.title}</h1>
-      <div className="flex items-center justify-start gap-3 mb-0 flex-wrap">
+      <h1 className="mt-0 text-xl leading-none tracking-none font-bold mb-0">{video.title}</h1>
+      <div className="flex items-center justify-start gap-3 mb-0 flex-wrap leading-tight">
         <img
           src={video.channelAvatar || "https://tinyurl.com/277pc7ru"}
           alt={video.channelName || "K13T DU0N9"}
@@ -113,9 +114,9 @@ const VideoPage = () => {
           <p className="mt-2 font-semibold mb-0">
             {video.channelName || "K13T DU0N9"}
           </p>
-          <p className="text-sm text-gray-400 tracking-tight mt-1">{video.subscriber || "8.3 N"} subscriber {video.subscriber > 1? "s" : ""}</p>
+          <p className="text-sm font-md text-gray-400 tracking-tight">{video.subscriber || "8.3 N"} subscriber {video.subscriber > 1? "s" : ""}</p>
         </div>
-        <button
+        <SubscribeBtn
           onClick={() => {
             if (!user) return;
             const next = toggleSubscription(user, {
@@ -126,8 +127,8 @@ const VideoPage = () => {
           }}
           className={`font-semibold tracking-tight px-3 py-2 rounded-full transition ${subscribed ? 'bg-gray-500 hover:bg-gray-400' : 'bg-red-600 hover:bg-red-700'} text-white`}
         >
-          {subscribed ? 'Đã đăng ký' : 'Subscribe'}
-        </button>
+          {subscribed ? 'Followed' : 'Subscribe'}
+        </SubscribeBtn>
 
         <div className="flex items-center bg-[#222222] rounded-full overflow-hidden tracking-tight ml-auto">
           {iconProp.map((btn, idx) => {
