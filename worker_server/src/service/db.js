@@ -4,6 +4,7 @@ import { createTimestamps } from "../../../api_server/src/util/helper.js";
 
 const db = await connectDB();
 const videos = db.collection("videoCollection");
+const users = db.collection("userCollections");
 
 // Input sample
 const sampleTest = {
@@ -49,6 +50,45 @@ export const VideoDB_operation = {
     return videos.findOne({ videoId });
   },
 
+  async findUploaderByVideoId(videoId) {
+    const result = await videos.aggregate([
+      { $match: { videoId: videoId } },
+      {
+        $addFields: {
+          userIdObj: { $toObjectId: "$userId" }
+        }
+      },
+      {
+        $lookup: {
+          from: "userCollections", 
+          localField: "userIdObj",  
+          foreignField: "_id",
+          as: "uploaderInfo"
+        }
+      },
+      {
+        $unwind: {
+          path: "$uploaderInfo",
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $project: {
+          _id: 0, 
+          videoId: 1,
+          uploader: {
+            _id: "$uploaderInfo._id",
+            name: "$uploaderInfo.name",
+            email: "$uploaderInfo.email",
+            avatar: "$uploaderInfo.avatar"
+          }
+        }
+      }
+    ]).toArray();
+
+    return result.length > 0 ? result[0] : null;
+  },
+
   // UPDATE
   async updateById(id, data) {
     return videos.updateOne(
@@ -58,6 +98,20 @@ export const VideoDB_operation = {
         $currentDate: { updatedAt: true },
       },
     );
+  },
+
+  async incViewAndFind(videoId){
+    const result = await videos.findOneAndUpdate(
+      { videoId },
+      { 
+        $inc: { views: 1 },
+        $currentDate: { updatedAt: true } 
+      },
+      { 
+        returnDocument: "after" 
+      }
+    );
+    return result; 
   },
 
   async updateByVideoId(videoId, data) {

@@ -44,3 +44,19 @@ export const formatTime = (sec) => {
     .padStart(2, "0");
   return `${m}:${s}`;
 };
+
+export const displayTimeFromDB = (time) => {
+  const date = new Date(time);
+  const formatter = new Intl.DateTimeFormat("vi-VN", {
+      timeZone: "Asia/Ho_Chi_Minh",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric"
+    });
+  const parts = formatter.formatToParts(date);
+  const day = parts.find(p => p.type === 'day').value;
+  const month = parts.find(p => p.type === 'month').value;
+  const year = parts.find(p => p.type === 'year').value;
+
+  return `${day} thg ${month}, ${year}`;
+}

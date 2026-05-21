@@ -76,7 +76,7 @@ const RegisterPage = () => {
         {/* Header */}
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold tracking-tight text-zinc-100">Đăng ký</h1>
-          <p className="mt-3 text-sm text-zinc-400">Nâng tầm giải trí với nền tảng streaming Metube</p>
+          <p className="mt-3 text-md text-zinc-400">Nâng tầm giải trí với nền tảng streaming Metube</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5 font-inter font-semibold">
@@ -153,7 +153,7 @@ const RegisterPage = () => {
         {/* Footer Link */}
         <p className="mt-4 text-center text-md text-zinc-500">
           Đã có tài khoản?{' '}
-          <Link to="/login" className="ml-2 font-semibold text-red-400 hover:underline transition-colors">
+          <Link to="/login" className="ml-2 font-semibold text-red-400 hover:underline transition-colors no-underline">
             Đăng nhập
           </Link>
         </p>

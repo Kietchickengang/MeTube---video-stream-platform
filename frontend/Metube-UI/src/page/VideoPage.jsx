@@ -8,8 +8,8 @@ import VideoPlayer from "../components/VideoPlayer";
 import VideoCard from "../components/VideoCard";
 import { useAuth } from "../context/AuthContext.jsx";
 import { addWatchHistory, isSubscribed, toggleSubscription } from "../service/userDataService.js";
-import { timeAgo } from "../utils/cal_in4.js";
 import { formatOut } from "../../../../worker_server/src/util/helper.js";
+import { displayTimeFromDB } from "../utils/cal_in4.js";
 
 const api_port = 8000;
 const hostPath = `http://localhost:${api_port}/metube/videos`;
@@ -102,8 +102,8 @@ const VideoPage = () => {
 
   const VideoDetails = () => (
     <>
-      <h1 className="text-xl leading-tigh tracking-none font-bold mb-0">{video.title}</h1>
-      <div className="flex items-center justify-start gap-3 mb-1 flex-wrap">
+      <h1 className="text-xl leading-none tracking-none font-bold mb-0">{video.title}</h1>
+      <div className="flex items-center justify-start gap-3 mb-0 flex-wrap">
         <img
           src={video.channelAvatar || "https://tinyurl.com/277pc7ru"}
           alt={video.channelName || "K13T DU0N9"}
@@ -113,13 +113,13 @@ const VideoPage = () => {
           <p className="mt-2 font-semibold mb-0">
             {video.channelName || "K13T DU0N9"}
           </p>
-          <p className="text-xs text-gray-400 tracking-tight mt-1">{video.subscriber || "8.3 N"} subscriber</p>
+          <p className="text-sm text-gray-400 tracking-tight mt-1">{video.subscriber || "8.3 N"} subscriber {video.subscriber > 1? "s" : ""}</p>
         </div>
         <button
           onClick={() => {
             if (!user) return;
             const next = toggleSubscription(user, {
-              channelName: video.channelName || "Kênh không xác định",
+              channelName: video.channelName || "Unknown",
               channelAvatar: video.channelAvatar || null,
             });
             setSubscribed(next.some((item) => item.channelName === video.channelName));
@@ -178,12 +178,12 @@ const VideoPage = () => {
       </div>
 
       <div className="bg-[#222222] p-3 rounded-xl mb-2 h-fit leading-tight">
-        <div className="flex items-center gap-4 text-sm font-semibold">
-          <span>{video.views || 8386} views</span>
-          <span>{timeAgo(video.createdAt)}</span>
+        <div className="flex items-center gap-4 text-md tracking-tighter font-semibold">
+          <span>{video.views || 8386} lượt xem</span>
+          <span>{displayTimeFromDB(video.createdAt)}</span>
         </div>
 
-        <div className={`mt-2 text-[14px] leading-6 text-[#f1f1f1] whitespace-pre-wrap text-left ${!expandDesc && "line-clamp-2"}`}>
+        <div className={`mt-2 text-md leading-6 text-[#f1f1f1] whitespace-pre-wrap text-left ${!expandDesc && "line-clamp-2"}`}>
           {video.description || "No description available."}
         </div>
 
@@ -198,7 +198,7 @@ const VideoPage = () => {
 
   const Sidebar = ({ className = "" }) => (
     <div className={className}>
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-2">
         {recommendedVideos.map((videoItem) => (
           <VideoCard
             key={videoItem.videoId}

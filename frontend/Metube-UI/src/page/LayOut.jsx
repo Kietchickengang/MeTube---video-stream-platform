@@ -37,7 +37,7 @@ const LayOut = (rootClasses) => {
   // Hide sidebar when click video
   useEffect(() => { 
     if(isVideoPage) { 
-      setSidebarOpen(false); 
+      setIsSidebarOpen(false); 
     } 
   }, [isVideoPage]);
 

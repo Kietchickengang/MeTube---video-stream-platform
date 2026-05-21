@@ -13,6 +13,7 @@ import {
   getMyVideos,
   deleteVideo,
   updateVideoInfo,
+  returnUploader,
 } from "../controller/videoController.js";
 
 import { isAuthenticated } from "../middleware/auth.js";
@@ -39,6 +40,8 @@ router.post("/:videoId/initVidDB", isAuthenticated, initStatusDB);
 router.post("/:videoId/wrkJobs", isAuthenticated, callWorker);
 
 router.get("/:videoId/upStatus", isAuthenticated, checkStatusUpload);
+
+router.get("/:videoId/uploader", isAuthenticated, returnUploader);
 
 router.patch("/:videoId/goPublish", isAuthenticated, updateSubmitDB);
 

@@ -226,7 +226,7 @@ const VideoPlayer = forwardRef(({videoPath, thumbnailUrl, isTheaterMode, toggleT
   return (
     <div
       ref={containerRef}
-      className={`relative overflow-hidden transition-all duration-300 ${
+      className={`relative isolate overflow-hidden will-change-transform transition-all duration-300 ${
         isTheaterMode && !isFullscreen
           ? "w-full h-[68vh] rounded-none bg-[#111111]"
           : "w-full aspect-video rounded-2xl bg-black shadow-2xl"
@@ -243,7 +243,7 @@ const VideoPlayer = forwardRef(({videoPath, thumbnailUrl, isTheaterMode, toggleT
       onTouchStart={handleActivity}
     >
       <div className="absolute inset-0 bg-[#0f0f0f]">
-        <img src={thumbnailUrl} alt="" className="w-full h-full object-cover scale-125 opacity-10 saturate-50"/>
+        <img src={thumbnailUrl} alt="" className={`w-full h-full object-cover scale-125 opacity-10 saturate-50`}/>
         <div className="absolute inset-0 bg-[#0f0f0f]" />
       </div>
 

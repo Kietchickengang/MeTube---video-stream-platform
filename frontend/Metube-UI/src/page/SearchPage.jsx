@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Play } from 'lucide-react';
 import { timeAgo, displayDuration } from '../utils/cal_in4';
+import { formatOut } from '../../../../worker_server/src/util/helper.js';
 
 const api_port = 8000;
 const hostPath = `http://localhost:${api_port}/metube/videos`;
@@ -42,8 +43,8 @@ const SearchPage = () => {
   return (
     <div className="max-w-7xl mx-auto px-2 py-4">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Kết quả tìm kiếm</h1>
-        <p className="text-sm text-[#c0c0c0]">Từ khóa: <span className="font-semibold text-white">{query || '---'}</span></p>
+        <h1 className="ml-2 text-3xl font-bold mb-4">Kết quả tìm kiếm</h1>
+        <p className="ml-2 text-md text-[#c0c0c0]">Từ khóa: <span className="font-semibold text-white">{query || '---'}</span></p>
       </div>
 
       {loading ? (
@@ -71,16 +72,15 @@ const SearchPage = () => {
                   className="w-full h-full object-cover"
                 />
                 {video.duration && (
-                  <div className="absolute bottom-3 right-3 rounded-md bg-black/70 px-2 py-1 text-xs text-white">
+                  <div className="absolute bottom-3 right-3 rounded-md bg-black/50 px-2 py-1 text-sm text-white font-semibold">
                     {displayDuration(video.duration)}
                   </div>
                 )}
               </div>
-              <div className="text-white font-semibold text-lg mb-2 line-clamp-2">{video.title}</div>
-              <div className="text-[#aaaaaa] text-sm mb-2">{video.channelName || 'Kênh không xác định'}</div>
-              <div className="flex items-center justify-between text-[#777] text-xs">
-                <span>{video.views || '0'} lượt xem</span>
-                <span>{timeAgo(video.createdAt)}</span>
+              <div className="text-white font-semibold text-lg line-clamp-2">{formatOut(video.title, 45)}</div>
+              <div className="font-semibold text-[#aaaaaa] text-md mb-1">{video.channelName || 'Unknown'}</div>
+              <div className="flex items-center justify-between text-[#777] text-sm font-semibold">
+                <span>{video.views || '0'} view{video.views > 1? 's' : ''} • {timeAgo(video.createdAt)}</span>
               </div>
             </Link>
           ))}
