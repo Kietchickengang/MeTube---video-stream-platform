@@ -58,41 +58,134 @@ img {
   opacity: 1; /* Firefox */
 }
 
-html.theme-dark body {
-  background-color: #0b0b0d;
-  color: #f3f4f6;
+/* 2. Thiết lập cấu hình hệ thống Variable cho Theme */
+html, html.theme-dark {
+  --bg-main: #0b0b0d;               /* Nền chính tối */
+  --bg-surface: #0f0f0f;            /* Nền panel tối */
+  --bg-button: #272727;             /* Nền nút bấm tối */
+  --bg-button-hover: #3f3f3f;       /* Nền hover nút bấm tối */
+  --text-main: #f3f4f6;             /* Chữ chính sáng */
+  --text-sub: #aaaaaa;              /* Chữ phụ sáng */
+  --border-main: #272727;           /* Viền tối */
 }
 
-html.theme-light body {
-  background-color: #f8fafc;
-  color: #0f172a;
+html.theme-light {
+  --bg-main: #f8fafc;               /* Nền chính sáng xám dịu mắt */
+  --bg-surface: #ffffff;            /* Nền panel trắng tinh */
+  --bg-button: #f1f5f9;             /* Nền nút bấm sáng (Shorts, Trang chủ,...) */
+  --bg-button-hover: #e2e8f0;       /* Nền hover nút bấm sáng */
+  --text-main: #0f0f0f;             /* Chữ chính tối */
+  --text-sub: #64748b;              /* Chữ phụ tối */
+  --border-main: #e2e8f0;           /* Viền sáng */
 }
 
-html.theme-light .bg-[#0f0f0f],
-html.theme-light .bg-[#121212],
-html.theme-light .bg-[#111111],
-html.theme-light .bg-[#181818],
-html.theme-light .bg-[#222222],
-html.theme-light .bg-[#272727] {
-  background-color: #ffffff !important;
+@layer base {
+  :root {
+    font-family: "Roboto", "Inter", system-ui, -apple-system, sans-serif;
+    line-height: 1.5;
+    font-weight: 400;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: var(--bg-main) !important;
+    color: var(--text-main) !important;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
 }
 
-html.theme-light .text-[#f1f1f1],
-html.theme-light .text-[#aaaaaa],
-html.theme-light .text-[#c0c0c0],
-html.theme-light .text-[#777],
-html.theme-light .text-[#999999],
-html.theme-light .text-[#bbbbbb] {
-  color: #1f2937 !important;
+/* 3. Khối xử lý tối ưu riêng cho Light Theme (Ghi đè thông minh không làm mất khối) */
+html.theme-light {
+  
+  /* Sửa lỗi chữ trắng bị tàng hình: Ép tất cả class chữ trắng/sáng của Tailwind quay xe sang màu tối */
+  .text-white,
+  .text-zinc-100,
+  .text-zinc-200,
+  .text-zinc-300,
+  .text-zinc-400,
+  .text-gray-100,
+  .text-gray-200,
+  .text-gray-300,
+  .text-\[\#f1f1f1\],
+  .text-\[\#aaaaaa\],
+  .text-\[\#c0c0c0\] {
+    color: var(--text-main) !important;
+  }
+
+  /* Giữ lại chữ phụ mềm hơn cho các mô tả/thời gian */
+  .text-zinc-400,
+  .text-zinc-500,
+  .text-\[\#777\],
+  .text-\[\#999999\],
+  .text-\[\#bbbbbb\] {
+    color: var(--text-sub) !important;
+  }
+
+  /* Đổi màu nền của Layout chính, Sidebar, Thẻ video, Thẻ comment */
+  .bg-\[\#0f0f0f\],
+  .bg-\[\#121212\],
+  .bg-\[\#111111\],
+  .bg-\[\#181818\],
+  .bg-zinc-900,
+  .bg-zinc-950 {
+    background-color: var(--bg-surface) !important;
+  }
+
+  /* Cứu các nút bấm (Shorts, Trang chủ, Kênh đăng ký, Nút chức năng player) trông đẹp và nổi bật hơn */
+  .bg-\[\#272727\],
+  .bg-\[\#222222\],
+  .bg-zinc-800,
+  .bg-white\/10 {
+    background-color: var(--bg-button) !important;
+  }
+
+  /* Hiệu ứng Hover mượt mà cho nút bấm ở light theme */
+  .hover\:bg-\[\#272727\]:hover,
+  .hover\:bg-zinc-800:hover,
+  .hover\:bg-white\/20:hover {
+    background-color: var(--bg-button-hover) !important;
+  }
+
+  /* Ép các đường viền tối sang đường viền sáng mảnh dẻ kiểu YouTube */
+  .border-\[\#272727\],
+  .border-\[\#333333\],
+  .border-\[\#3f3f3f\],
+  .border-zinc-800 {
+    border-color: var(--border-main) !important;
+  }
 }
 
-html.theme-light .border-[#272727],
-html.theme-light .border-[#333333],
-html.theme-light .border-[#3f3f3f] {
-  border-color: #d1d5db !important;
+/* 4. Tùy chỉnh thanh cuộn (Scrollbar) theo trạng thái Theme */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-main);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--bg-button-hover);
+  border-radius: 10px;
 }
 
-html.theme-light .hover\:bg-[#272727]:hover,
-html.theme-light .hover\:bg-[#272727] {
-  background-color: #e2e8f0 !important;
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* 5. Đảm bảo các hình ảnh không biến dạng */
+img {
+  max-width: 100%;
+  display: block;
+}
+
+::placeholder {
+  color: #6c757d !important;
+  opacity: 1;
 }
